@@ -1,0 +1,5 @@
+# synthetic — RFC 5424 with structured data
+<134>1 2026-09-10T17:35:23.123Z gateway netsentry-gen 4242 ID7 [gen@32473 seq="7" note="a \"quoted\" value \] with bracket"] sample structured message 7
+<165>1 2026-09-10T17:35:23Z host app - - - plain message without structured data
+<165>1 - - - - - - only dashes
+<165>1 2026-09-10T17:35:23Z host app 12 - [a x="1"][b y="2" z="3"]

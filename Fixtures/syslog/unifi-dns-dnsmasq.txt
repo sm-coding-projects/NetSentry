@@ -1,0 +1,4 @@
+# synthetic — dnsmasq DNS query logging
+<30>Sep 10 19:35:23 UCG-Fiber dnsmasq[2345]: query[A] example.com from 192.168.99.31
+<30>Sep 10 19:35:23 UCG-Fiber dnsmasq[2345]: forwarded example.com to 1.1.1.1
+<30>Sep 10 19:35:23 UCG-Fiber dnsmasq[2345]: reply example.com is 203.0.113.50

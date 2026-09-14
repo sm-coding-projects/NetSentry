@@ -1,0 +1,4 @@
+# synthetic — Suricata fast.log style alerts (UniFi wrapping UNVERIFIED)
+<28>Sep 10 19:35:23 UCG-Fiber suricata[777]: [1:2001219:20] ET SCAN Potential SSH Scan [**] [Classification: Attempted Information Leak] [Priority: 2] {TCP} 203.0.113.99:41234 -> 192.168.99.1:22
+<28>Sep 10 19:35:24 UCG-Fiber suricata[777]: [Drop] [1:2100498:7] GPL ATTACK_RESPONSE id check returned root [**] [Classification: Potentially Bad Traffic] [Priority: 2] {TCP} 203.0.113.50:80 -> 192.168.99.31:51000
+<28>Sep 10 19:35:25 UCG-Fiber suricata[777]: [1:2200003:2] SURICATA IPv4 truncated packet [**] [Classification: Generic Protocol Command Decode] [Priority: 3] {ICMP} 203.0.113.5 -> 192.168.99.1

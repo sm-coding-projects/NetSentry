@@ -1,0 +1,6 @@
+# synthetic — things the parsers must keep verbatim without dropping
+not syslog at all
+<999>bad priority stays part of the message
+<14>Sep 10 19:35:23
+{"json":"payload","looks":"structured"}
+<14>Sep 10 19:35:23 gateway  weird::tag:: message with control chars \x1b[31m and '; DROP TABLE events; --

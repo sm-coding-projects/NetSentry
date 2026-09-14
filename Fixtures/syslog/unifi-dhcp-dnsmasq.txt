@@ -1,0 +1,5 @@
+# synthetic — dnsmasq DHCP lines (UniFi wrapping UNVERIFIED)
+<30>Sep 10 19:35:23 UCG-Fiber dnsmasq-dhcp[2345]: DHCPDISCOVER(br0) 02:11:22:33:44:55
+<30>Sep 10 19:35:23 UCG-Fiber dnsmasq-dhcp[2345]: DHCPOFFER(br0) 192.168.99.31 02:11:22:33:44:55
+<30>Sep 10 19:35:23 UCG-Fiber dnsmasq-dhcp[2345]: DHCPREQUEST(br0) 192.168.99.31 02:11:22:33:44:55
+<30>Sep 10 19:35:23 UCG-Fiber dnsmasq-dhcp[2345]: DHCPACK(br0) 192.168.99.31 02:11:22:33:44:55 nas-01

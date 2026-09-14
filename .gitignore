@@ -1,0 +1,9 @@
+.DS_Store
+/build
+/DerivedData
+*.xcuserstate
+xcuserdata/
+/Fixtures/incoming/
+*.pcap
+.swiftpm/
+/.build

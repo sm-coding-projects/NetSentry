@@ -1,0 +1,5 @@
+# synthetic — OpenSSH auth lines
+<38>Sep 10 19:35:23 UCG-Fiber sshd[4321]: Accepted publickey for admin from 192.168.99.20 port 51234 ssh2: ED25519 SHA256:abc
+<38>Sep 10 19:35:24 UCG-Fiber sshd[4322]: Failed password for root from 203.0.113.99 port 40000 ssh2
+<38>Sep 10 19:35:25 UCG-Fiber sshd[4323]: Invalid user oracle from 203.0.113.98 port 40001
+<38>Sep 10 19:35:26 UCG-Fiber sshd[4321]: Disconnected from user admin 192.168.99.20 port 51234

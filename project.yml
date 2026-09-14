@@ -1,0 +1,189 @@
+# XcodeGen specification. Regenerate with Scripts/generate-project.sh (xcodegen generate).
+name: NetSentry
+options:
+  bundleIdPrefix: com.netsentry
+  deploymentTarget:
+    macOS: "15.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+  groupSortPosition: top
+  xcodeVersion: "26.0"
+
+# Product identity. Renaming: change these and NetSentryCore.Branding.
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MACOSX_DEPLOYMENT_TARGET: "15.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    ENABLE_HARDENED_RUNTIME: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    DEAD_CODE_STRIPPING: YES
+    # Development signing: ad-hoc. Release builds override these (Scripts/build-release.sh).
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "-"
+    DEVELOPMENT_TEAM: ""
+    NETSENTRY_TEAM_ID: "TEAMID"
+    NETSENTRY_MACH_SERVICE: "com.netsentry.collector.xpc"
+    NETSENTRY_APP_GROUP: "group.com.netsentry"
+    NETSENTRY_APP_BUNDLE_ID: "com.netsentry.app"
+    NETSENTRY_COLLECTOR_BUNDLE_ID: "com.netsentry.collector"
+    OTHER_SWIFT_FLAGS: "-enable-upcoming-feature ExistentialAny"
+  configs:
+    Debug:
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+      # Debug builds use their own identifier so they never share per-app OS state (LaunchServices,
+      # BackgroundTaskManagement, preferences, window restoration) with a release install. On the dev
+      # machine, stale state under com.netsentry.app left SwiftUI unable to create the main window.
+      NETSENTRY_APP_BUNDLE_ID: "com.netsentry.app.debug"
+    Release:
+      SWIFT_COMPILATION_MODE: wholemodule
+
+packages:
+  NetSentryKit:
+    path: .
+
+targets:
+  NetSentryCollector:
+    type: application
+    platform: macOS
+    sources:
+      - path: Apps/NetSentryCollector
+        excludes:
+          - "LaunchAgent/**"
+          - "*.entitlements"
+    dependencies:
+      - package: NetSentryKit
+        product: NetSentryCore
+      - package: NetSentryKit
+        product: NetSentryIPC
+      - package: NetSentryKit
+        product: NetSentryPersistence
+      - package: NetSentryKit
+        product: NetSentryIPFIX
+      - package: NetSentryKit
+        product: NetSentryEnrichment
+      - package: NetSentryKit
+        product: NetSentryDetection
+      - package: NetSentryKit
+        product: NetSentrySyslog
+    info:
+      path: Apps/NetSentryCollector/Info.plist
+      properties:
+        CFBundleName: NetSentryCollector
+        CFBundleDisplayName: NetSentry Collector
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSUIElement: true
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        NSHumanReadableCopyright: "Local-only network telemetry collector."
+        NetSentryTeamID: $(NETSENTRY_TEAM_ID)
+        NetSentryMachService: $(NETSENTRY_MACH_SERVICE)
+        NetSentryAppGroup: $(NETSENTRY_APP_GROUP)
+        NetSentryAppBundleID: $(NETSENTRY_APP_BUNDLE_ID)
+        NetSentryCollectorBundleID: $(NETSENTRY_COLLECTOR_BUNDLE_ID)
+    entitlements:
+      path: Apps/NetSentryCollector/NetSentryCollector.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(NETSENTRY_COLLECTOR_BUNDLE_ID)
+        PRODUCT_NAME: NetSentryCollector
+        SKIP_INSTALL: YES
+        ENABLE_APP_SANDBOX: NO
+
+  NetSentry:
+    type: application
+    platform: macOS
+    sources:
+      - path: Apps/NetSentry
+        excludes:
+          - "Entitlements/**"
+      - path: Apps/NetSentryCollector/LaunchAgent/com.netsentry.collector.plist
+        buildPhase:
+          copyFiles:
+            destination: wrapper
+            subpath: Contents/Library/LaunchAgents
+    dependencies:
+      - target: NetSentryCollector
+        embed: true
+        codeSign: true
+        copy:
+          destination: wrapper
+          subpath: Contents/Library
+      - package: NetSentryKit
+        product: NetSentryCore
+      - package: NetSentryKit
+        product: NetSentryIPC
+      - package: NetSentryKit
+        product: NetSentryPersistence
+      - package: NetSentryKit
+        product: NetSentryAnalytics
+      - package: NetSentryKit
+        product: NetSentryEnrichment
+      - package: NetSentryKit
+        product: NetSentryDetection
+      - package: NetSentryKit
+        product: NetSentryCorrelation
+      - package: NetSentryKit
+        product: NetSentryExport
+    info:
+      path: Apps/NetSentry/Info.plist
+      properties:
+        CFBundleName: NetSentry
+        CFBundleDisplayName: NetSentry
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        LSApplicationCategoryType: public.app-category.utilities
+        NSHumanReadableCopyright: "Local-only network observability for UniFi."
+        NetSentryTeamID: $(NETSENTRY_TEAM_ID)
+        NetSentryMachService: $(NETSENTRY_MACH_SERVICE)
+        NetSentryAppGroup: $(NETSENTRY_APP_GROUP)
+        NetSentryAppBundleID: $(NETSENTRY_APP_BUNDLE_ID)
+        NetSentryCollectorBundleID: $(NETSENTRY_COLLECTOR_BUNDLE_ID)
+        CFBundleURLTypes:
+          - CFBundleURLName: com.netsentry.app
+            CFBundleURLSchemes: [netsentry]
+    entitlements:
+      path: Apps/NetSentry/Entitlements/NetSentry.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(NETSENTRY_APP_BUNDLE_ID)
+        PRODUCT_NAME: NetSentry
+        # Both processes run un-sandboxed with the hardened runtime (ADR-002): macOS requires an
+        # SMAppService agent to be sandboxed whenever the registering app is sandboxed, and a
+        # sandboxed collector cannot open a user-chosen storage volume.
+        ENABLE_APP_SANDBOX: NO
+    scheme:
+      testTargets: [NetSentryUITests]
+
+  NetSentryUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources: [Apps/NetSentryUITests]
+    dependencies:
+      - target: NetSentry
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.netsentry.app.uitests
+        CODE_SIGN_IDENTITY: "-"
+        TEST_TARGET_NAME: NetSentry
+        GENERATE_INFOPLIST_FILE: YES
+        ENABLE_HARDENED_RUNTIME: NO
+        ENABLE_APP_SANDBOX: NO
+
+schemes:
+  NetSentry:
+    build:
+      targets:
+        NetSentry: all
+        NetSentryCollector: all
+        NetSentryUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets: [NetSentryUITests]
+    archive:
+      config: Release
