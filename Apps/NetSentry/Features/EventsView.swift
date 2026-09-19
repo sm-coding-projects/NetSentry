@@ -45,6 +45,7 @@ struct EventsView: View {
             .padding(10)
             }
             Divider()
+            GeometryReader { geo in
             HSplitView {
                 Table(rows, selection: $selection) {
                     TableColumn("Time") { e in Text(e.effectiveTime.date.formatted(date: .abbreviated, time: .standard)).monospacedDigit() }.width(min: 150, ideal: 170)
@@ -56,12 +57,14 @@ struct EventsView: View {
                     TableColumn("Rule / Signature") { e in Text(e.ruleName ?? e.idsSignature ?? e.username ?? "") }
                     TableColumn("Message") { e in Text(e.message).lineLimit(1) }
                 }
-                .accessibilityLabel("Events table")                .frame(minWidth: 320)
+                .accessibilityLabel("Events table").frame(minWidth: 320).frame(height: geo.size.height)
                 if let id = selection, let e = rows.first(where: { $0.id == id }) {
-                    ScrollView { LiveInspector(row: LiveRow(id: 0, time: e.effectiveTime, flow: nil, event: e)) }.frame(minWidth: 300, idealWidth: 380)
+                    ScrollView { LiveInspector(row: LiveRow(id: 0, time: e.effectiveTime, flow: nil, event: e)) }.frame(minWidth: 300, idealWidth: 380).frame(height: geo.size.height)
                 } else {
-                    ContentUnavailableView("Select an event", systemImage: "sidebar.right", description: Text("Structured fields, parser and version, and the raw message.")).frame(minWidth: 300, idealWidth: 380)
+                    ContentUnavailableView("Select an event", systemImage: "sidebar.right", description: Text("Structured fields, parser and version, and the raw message.")).frame(minWidth: 300, idealWidth: 380).frame(height: geo.size.height)
                 }
+            }
+            .frame(width: geo.size.width, height: geo.size.height)
             }
             HStack {
                 if loading { ProgressView().controlSize(.small) }
@@ -73,6 +76,7 @@ struct EventsView: View {
             }
             .padding(.horizontal, 10).padding(.vertical, 6)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .sheet(isPresented: $showExport) {
             let prefixes = model.configuration.internalPrefixes
             ExportSheet(title: "Export \(rows.count) loaded events") { format, policy in

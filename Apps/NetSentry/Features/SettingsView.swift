@@ -66,6 +66,7 @@ struct SettingsView: View {
                 Text("5–500 GB. Treated as a ceiling; nothing is preallocated. Shrinking previews deletions first (Phase 3).").font(.caption).foregroundStyle(.secondary)
             }
         }
+        AISettingsSection()
         SwiftUI.Section("Network definitions") {
             TextField("Internal networks (CIDR, comma separated)", text: Binding(get: { d.wrappedValue.internalNetworks.joined(separator: ", ") },
                                                                                   set: { d.wrappedValue.internalNetworks = $0.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty } }))
@@ -185,6 +186,92 @@ struct ShrinkPreviewSheet: View {
             HStack { Spacer(); Button("Cancel", action: cancel).keyboardShortcut(.cancelAction); Button("Delete and apply", role: .destructive, action: confirm) }
         }
         .padding(20).frame(width: 520)
+    }
+}
+
+
+/// Ask AI provider connection: base URL, API key (stored in the Keychain), and model, with an
+/// optional fetch of the provider's available models. Supports OpenAI- and Anthropic-compatible APIs.
+struct AISettingsSection: View {
+    @Environment(AISettings.self) private var settings
+    @Environment(AIService.self) private var ai
+    @State private var models: [String] = []
+    @State private var fetching = false
+    @State private var fetchError: String?
+    @State private var saved = false
+
+    var body: some View {
+        @Bindable var settings = settings
+        SwiftUI.Section("Ask AI") {
+            Picker("Provider", selection: $settings.provider) {
+                ForEach(AISettings.Provider.allCases) { Text($0.label).tag($0) }
+            }
+            .onChange(of: settings.provider) { _, _ in settings.applyProviderDefaults(); models = []; markDirty() }
+
+            TextField("Base URL", text: $settings.baseURL)
+                .onChange(of: settings.baseURL) { _, _ in markDirty() }
+            if settings.normalizedBaseURL == nil, !settings.baseURL.isEmpty {
+                Text("Enter a valid http(s) URL, e.g. \(settings.provider.defaultBaseURL)").font(.caption).foregroundStyle(.red)
+            }
+
+            SecureField("API key", text: $settings.apiKey)
+                .onChange(of: settings.apiKey) { _, _ in markDirty() }
+
+            HStack {
+                TextField("Model", text: $settings.model)
+                    .onChange(of: settings.model) { _, _ in markDirty() }
+                if !models.isEmpty {
+                    Menu {
+                        ForEach(models, id: \.self) { m in Button(m) { settings.model = m; save() } }
+                    } label: { Image(systemName: "chevron.down.circle") }
+                    .menuStyle(.borderlessButton).frame(width: 28)
+                }
+                Button { Task { await fetchModels() } } label: {
+                    if fetching { ProgressView().controlSize(.small) } else { Text("Fetch") }
+                }
+                .disabled(fetching || settings.apiKey.isEmpty || settings.normalizedBaseURL == nil)
+            }
+            if let fetchError { Text(fetchError).font(.caption).foregroundStyle(.red) }
+
+            VStack(alignment: .leading) {
+                HStack {
+                    Text("Temperature").frame(width: 120, alignment: .leading)
+                    Slider(value: $settings.temperature, in: 0...1, step: 0.1) { _ in save() }
+                    Text(settings.temperature.formatted(.number.precision(.fractionLength(1)))).monospacedDigit().frame(width: 32)
+                }
+                Text("Lower is more focused and factual; higher is more exploratory. 0.2 is a good default for troubleshooting.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
+            HStack {
+                Button("Save") { save() }.keyboardShortcut(.defaultAction)
+                if saved { Text("Saved").foregroundStyle(.green).font(.caption) }
+                Spacer()
+                Text("The API key is stored in your macOS Keychain. Requests go directly to the URL above.")
+                    .font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.trailing)
+            }
+        }
+    }
+
+    private func markDirty() { saved = false }
+
+    private func save() {
+        settings.save()
+        saved = true
+        fetchError = nil
+    }
+
+    private func fetchModels() async {
+        fetching = true; fetchError = nil
+        defer { fetching = false }
+        // Persist the key first so the fetch uses what's on screen.
+        settings.save()
+        do {
+            models = try await ai.fetchModels()
+            if models.isEmpty { fetchError = "The provider returned no models." }
+        } catch {
+            fetchError = (error as? AIError)?.errorDescription ?? error.localizedDescription
+        }
     }
 }
 

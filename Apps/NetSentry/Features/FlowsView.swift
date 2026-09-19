@@ -30,16 +30,20 @@ struct FlowsView: View {
         VStack(spacing: 0) {
             filterBar
             Divider()
+            GeometryReader { geo in
             HSplitView {
-                table.frame(minWidth: 320)
+                table.frame(minWidth: 320).frame(height: geo.size.height)
                 if let id = selection, let f = rows.first(where: { $0.id == id }) {
-                    ScrollView { FlowDetail(flow: f).padding(12) }.frame(minWidth: 300, idealWidth: 360)
+                    ScrollView { FlowDetail(flow: f).padding(12) }.frame(minWidth: 300, idealWidth: 360).frame(height: geo.size.height)
                 } else {
-                    ContentUnavailableView("Select a flow", systemImage: "sidebar.right", description: Text("Every decoded field is shown, including unmapped IPFIX elements.")).frame(minWidth: 300, idealWidth: 360)
+                    ContentUnavailableView("Select a flow", systemImage: "sidebar.right", description: Text("Every decoded field is shown, including unmapped IPFIX elements.")).frame(minWidth: 300, idealWidth: 360).frame(height: geo.size.height)
                 }
+            }
+            .frame(width: geo.size.width, height: geo.size.height)
             }
             statusBar
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .task { await load(reset: true) }
         .sheet(isPresented: $showExport) {
             ExportSheet(title: "Export \(rows.count) loaded flows") { format, policy in

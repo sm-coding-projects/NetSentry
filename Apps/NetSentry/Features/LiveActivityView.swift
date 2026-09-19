@@ -34,6 +34,7 @@ struct LiveActivityView: View {
                 .padding(10)
             }
             Divider()
+            GeometryReader { geo in
             HSplitView {
                 Table(rows, selection: $selection) {
                     TableColumn("Time") { r in Text(r.time.date.formatted(date: .omitted, time: .standard)).monospacedDigit() }.width(80)
@@ -44,13 +45,15 @@ struct LiveActivityView: View {
                     TableColumn("Proto") { r in Text(r.proto) }.width(60)
                     TableColumn("Bytes / Detail") { r in Text(r.detail).lineLimit(1) }
                 }
-                .accessibilityLabel("Live activity table")                .frame(minWidth: 320)
+                .accessibilityLabel("Live activity table").frame(minWidth: 320).frame(height: geo.size.height)
                 if let sel = selection, let row = model.liveRows.first(where: { $0.id == sel }) {
-                    LiveInspector(row: row).frame(minWidth: 280, idealWidth: 340)
+                    LiveInspector(row: row).frame(minWidth: 280, idealWidth: 340).frame(height: geo.size.height)
                 } else {
                     ContentUnavailableView("Select a record", systemImage: "sidebar.right", description: Text("All decoded fields, including unmapped IPFIX elements and raw syslog text, appear here."))
-                        .frame(minWidth: 280, idealWidth: 340)
+                        .frame(minWidth: 280, idealWidth: 340).frame(height: geo.size.height)
                 }
+            }
+            .frame(width: geo.size.width, height: geo.size.height)
             }
         }
         .task { await model.subscribeLive() }

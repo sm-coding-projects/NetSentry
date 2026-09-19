@@ -8,7 +8,9 @@ import NetSentryCore
 @main
 struct NetSentryApp: App {
     @State private var model: AppModel
-    @State private var analytics = AnalyticsService()
+    @State private var analytics: AnalyticsService
+    @State private var aiSettings: AISettings
+    @State private var ai: AIService
 
     init() {
         #if DEBUG
@@ -16,6 +18,11 @@ struct NetSentryApp: App {
         #endif
         let m = AppModel()
         _model = State(initialValue: m)
+        let a = AnalyticsService()
+        _analytics = State(initialValue: a)
+        let settings = AISettings()
+        _aiSettings = State(initialValue: settings)
+        _ai = State(initialValue: AIService(settings: settings, model: m, analytics: a))
 
         #if DEBUG
         AppModelRegistry.shared = m
@@ -198,6 +205,8 @@ struct NetSentryApp: App {
             MainView()
                 .environment(model)
                 .environment(analytics)
+                .environment(aiSettings)
+                .environment(ai)
                 .frame(minWidth: 1000, minHeight: 640)
                 .task {
                     #if DEBUG
@@ -214,6 +223,8 @@ struct NetSentryApp: App {
         Settings {
             SettingsView()
                 .environment(model)
+                .environment(aiSettings)
+                .environment(ai)
                 .frame(width: 620)
         }
     }

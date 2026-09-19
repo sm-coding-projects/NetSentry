@@ -27,6 +27,7 @@ struct SecurityView: View {
     var filtered: [NetSentryDetection.Alert] { alerts.filter { states.contains($0.state) && $0.severity >= minSeverity } }
 
     var body: some View {
+        GeometryReader { geo in
         HSplitView {
             VStack(spacing: 0) {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -53,16 +54,17 @@ struct SecurityView: View {
                     TableColumn("Count") { a in Text("\(a.occurrenceCount)").monospacedDigit() }.width(50)
                     TableColumn("Last") { a in Text(Format.relative(a.lastOccurrence)) }.width(110)
                 }
-                .accessibilityLabel("Alerts table")
+                .accessibilityLabel("Alerts table").frame(maxWidth: .infinity, maxHeight: .infinity)
                 if let error { Text(error).font(.caption).foregroundStyle(.red).padding(6) }
             }
-            .frame(minWidth: 320)
+            .frame(minWidth: 320).frame(height: geo.size.height)
             Group {
                 if let id = selection, let a = alerts.first(where: { $0.id == id }) { AlertDetailView(alert: a, note: $note, onChange: { updated in replace(updated) }, onError: { error = $0 }) }
                 else { ContentUnavailableView("Select an alert", systemImage: "shield.lefthalf.filled", description: Text("Evidence, the reason it triggered, the baseline used, and the supporting flows and events.")) }
             }
-            .frame(minWidth: 300)
+            .frame(minWidth: 300).frame(height: geo.size.height)
         }
+        .frame(width: geo.size.width, height: geo.size.height)
         .task { await load() }
         .onChange(of: model.lastAlertEvent) { _, _ in Task { await load() } }
         .onChange(of: model.pendingAlertID) { _, id in if let id { selection = id; model.pendingAlertID = nil } }
@@ -85,6 +87,7 @@ struct SecurityView: View {
                     Task { await exportReport(a, policy: policy, isInternal: isInternal) }
                 }
             }
+        }
         }
     }
 

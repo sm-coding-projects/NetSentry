@@ -2,7 +2,7 @@ import SwiftUI
 import NetSentryCore
 
 enum Section: String, CaseIterable, Identifiable, Hashable {
-    case overview, liveActivity, clients, flows, events, security, investigation, storage, collectorHealth, settings
+    case overview, liveActivity, clients, flows, events, security, investigation, askAI, storage, collectorHealth, settings
     var id: String { rawValue }
     var title: String {
         switch self {
@@ -13,6 +13,7 @@ enum Section: String, CaseIterable, Identifiable, Hashable {
         case .events: "Events"
         case .security: "Security"
         case .investigation: "Investigation"
+        case .askAI: "Ask AI"
         case .storage: "Storage"
         case .collectorHealth: "Collector Health"
         case .settings: "Settings"
@@ -27,6 +28,7 @@ enum Section: String, CaseIterable, Identifiable, Hashable {
         case .events: "list.bullet.rectangle"
         case .security: "shield.lefthalf.filled"
         case .investigation: "magnifyingglass"
+        case .askAI: "sparkles"
         case .storage: "internaldrive"
         case .collectorHealth: "heart.text.square"
         case .settings: "gearshape"
@@ -35,7 +37,7 @@ enum Section: String, CaseIterable, Identifiable, Hashable {
     /// Phase in which the full view ships; nil when already available.
     var availableInPhase: Int? {
         switch self {
-        case .overview, .collectorHealth, .settings, .liveActivity, .storage, .clients, .flows, .events, .security, .investigation: nil
+        case .overview, .collectorHealth, .settings, .liveActivity, .storage, .clients, .flows, .events, .security, .investigation, .askAI: nil
         }
     }
 }
@@ -51,7 +53,7 @@ struct MainView: View {
                     row(.overview); row(.liveActivity)
                 }
                 SwiftUI.Section("Investigate") {
-                    row(.clients); row(.flows); row(.events); row(.security); row(.investigation)
+                    row(.clients); row(.flows); row(.events); row(.security); row(.investigation); row(.askAI)
                 }
                 SwiftUI.Section("System") {
                     row(.storage); row(.collectorHealth); row(.settings)
@@ -86,6 +88,7 @@ struct MainView: View {
         case .events: EventsView()
         case .security: SecurityView()
         case .investigation: InvestigationView()
+        case .askAI: AskAIView()
         case .collectorHealth: CollectorHealthView()
         case .settings: SettingsView()
         default: PhasePlaceholderView(section: s)

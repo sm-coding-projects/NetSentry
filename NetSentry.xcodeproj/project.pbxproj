@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		001B9BF5444736A02D6BE0AD /* NetSentryExport in Frameworks */ = {isa = PBXBuildFile; productRef = 216534CF30E08F211A5EBBB1 /* NetSentryExport */; };
+		05AA5CA80B6763A5697F16C3 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DE48BEB35AF5A364E4F8AB /* AIService.swift */; };
 		0E4552028EBF5C2255B4BF78 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CB296F73622E4DE11D7F9F /* AnalyticsService.swift */; };
 		16D68A1F7AF1E150F1E14583 /* InvestigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B03BB0E23C092792A8DDE602 /* InvestigationView.swift */; };
 		21CD171AD28FBC28EFFC945C /* OverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C4E1F67D87F9F4150818D46 /* OverviewView.swift */; };
@@ -29,10 +30,15 @@
 		5D90A0138F55C4B76C4ED075 /* NetSentryAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 7C694765B5CB4843FDD0CE96 /* NetSentryAnalytics */; };
 		636D6EBBBE7F00D3229B9252 /* NetSentryIPFIX in Frameworks */ = {isa = PBXBuildFile; productRef = DDA9E0519F1DAB22CEC2414E /* NetSentryIPFIX */; };
 		6385271D417A73F3A592E661 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117A618CB108EBEDC1293FB6 /* main.swift */; };
+		6AE36C57E3F161F3E36C1D22 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DC9C3CFA33F96EF0E74318 /* Keychain.swift */; };
 		6C3892595F9CFECC0CF12437 /* com.netsentry.collector.plist in CopyFiles */ = {isa = PBXBuildFile; fileRef = C452BFF07EC00D1D3C2E51E9 /* com.netsentry.collector.plist */; };
+		78E731A64B8DEDC6414D3E8C /* AskAIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43393C6954FA88DEDACA871D /* AskAIView.swift */; };
 		797A67A18C5377C250AFE40D /* SecurityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24EB42A0A4E19EC156578356 /* SecurityView.swift */; };
+		7DC577BC653A8B2C081AFEF7 /* FormattedText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9871406B3AFEDC26173DC643 /* FormattedText.swift */; };
 		84C4CBCB5BC97784529898EB /* CollectorClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D675AA7C51279338E1A84A0F /* CollectorClient.swift */; };
+		8B673A0D81C88A6660DBA652 /* AIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB660FED980E2D6734E28EF6 /* AIModels.swift */; };
 		8E2B3DB2E3BEE93DDB1BC9FF /* SystemObservers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F9F689E3EAB2E9C84B78DE2 /* SystemObservers.swift */; };
+		91698CC37B8F0934B5BBCB61 /* AITools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1849D32E33E283C35F57E2F7 /* AITools.swift */; };
 		93E72D7707726B69E6068484 /* OverviewAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50A23A0D756E42F4A581E08 /* OverviewAnalytics.swift */; };
 		94628401B39667C590C3E555 /* NetSentryIPC in Frameworks */ = {isa = PBXBuildFile; productRef = FD503FBA538FB5E922BEA0E1 /* NetSentryIPC */; };
 		9641CCC4A0F8E164324D2FE7 /* NetSentryIPC in Frameworks */ = {isa = PBXBuildFile; productRef = 4CF0E8FF455EDDB91EF05E19 /* NetSentryIPC */; };
@@ -55,6 +61,7 @@
 		DAB9E3D9B112F4E41A47151F /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4A1D3679687F90782F7B2C /* MainView.swift */; };
 		E2D437EA5A8CB37842F512B2 /* NetSentryCore in Frameworks */ = {isa = PBXBuildFile; productRef = BDF3443E9DA8241421851D45 /* NetSentryCore */; };
 		F7C4BFDDDE21162A431153AA /* DecodeStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636A6DBC0F16B135B9C0AA85 /* DecodeStage.swift */; };
+		FA22803F758145509DB171F5 /* AISettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0833EDEC6F58E8F48B9569 /* AISettings.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -100,11 +107,14 @@
 
 /* Begin PBXFileReference section */
 		117A618CB108EBEDC1293FB6 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		1849D32E33E283C35F57E2F7 /* AITools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AITools.swift; sourceTree = "<group>"; };
 		1902A5F31FD5D8EFE4AAA872 /* CollectorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectorManager.swift; sourceTree = "<group>"; };
 		192A70BCB94D48153EFF3811 /* NetworkListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkListener.swift; sourceTree = "<group>"; };
 		1C4E1F67D87F9F4150818D46 /* OverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverviewView.swift; sourceTree = "<group>"; };
 		24EB42A0A4E19EC156578356 /* SecurityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityView.swift; sourceTree = "<group>"; };
+		3D0833EDEC6F58E8F48B9569 /* AISettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AISettings.swift; sourceTree = "<group>"; };
 		3D4A1D3679687F90782F7B2C /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		43393C6954FA88DEDACA871D /* AskAIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskAIView.swift; sourceTree = "<group>"; };
 		4F9F689E3EAB2E9C84B78DE2 /* SystemObservers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemObservers.swift; sourceTree = "<group>"; };
 		5088B199BD18ED70FCC02B74 /* XPCServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPCServer.swift; sourceTree = "<group>"; };
 		534C1BD1F4B75BF2F9646D7B /* LiveActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityView.swift; sourceTree = "<group>"; };
@@ -120,10 +130,13 @@
 		8F6628574D7602DE32A6AA31 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		8FDA47AD1330D1F594E63B1B /* CollectorHealthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectorHealthView.swift; sourceTree = "<group>"; };
 		97F83F08A9C9252FB9C933D2 /* CollectorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectorService.swift; sourceTree = "<group>"; };
+		9871406B3AFEDC26173DC643 /* FormattedText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormattedText.swift; sourceTree = "<group>"; };
+		98DC9C3CFA33F96EF0E74318 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		9B3C5FCE0D57FCA26B65EE47 /* RawCaptureWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawCaptureWriter.swift; sourceTree = "<group>"; };
 		A3A05DDAA4424EB040BC8FC8 /* NetSentry */ = {isa = PBXFileReference; lastKnownFileType = folder; name = NetSentry; path = .; sourceTree = SOURCE_ROOT; };
 		B03BB0E23C092792A8DDE602 /* InvestigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestigationView.swift; sourceTree = "<group>"; };
 		B54F32D7251C5D03CB8C880F /* ClientsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientsView.swift; sourceTree = "<group>"; };
+		BB660FED980E2D6734E28EF6 /* AIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIModels.swift; sourceTree = "<group>"; };
 		C452BFF07EC00D1D3C2E51E9 /* com.netsentry.collector.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = com.netsentry.collector.plist; sourceTree = "<group>"; };
 		D01281CD04FC7DA0867BD5D0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		D50A23A0D756E42F4A581E08 /* OverviewAnalytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverviewAnalytics.swift; sourceTree = "<group>"; };
@@ -133,6 +146,7 @@
 		ED3EDDCE6968B9D31A462E45 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		F01E0F6FD4019B6D0250AC76 /* SavedSearchMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedSearchMenu.swift; sourceTree = "<group>"; };
 		F0DF43385958DF5D404A654A /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
+		F3DE48BEB35AF5A364E4F8AB /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
 		F8B41F1DFE19AD5F2658557E /* NetSentryCollector.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NetSentryCollector.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F9382AB19F485DDDFE574807 /* ScreenshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotTests.swift; sourceTree = "<group>"; };
 		F94E6017F91280C45BF85AE2 /* NetSentryUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NetSentryUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -221,6 +235,7 @@
 		59E0FEF9A3227E9F7BAD8D2B /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				43393C6954FA88DEDACA871D /* AskAIView.swift */,
 				B54F32D7251C5D03CB8C880F /* ClientsView.swift */,
 				8FDA47AD1330D1F594E63B1B /* CollectorHealthView.swift */,
 				7AC9D3AF6641713A56A25CE1 /* EventsView.swift */,
@@ -279,6 +294,7 @@
 		8DE848F28DDF6DD04F09EDF7 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				9871406B3AFEDC26173DC643 /* FormattedText.swift */,
 				F01E0F6FD4019B6D0250AC76 /* SavedSearchMenu.swift */,
 				5A830CA2365948341949B86A /* StatCard.swift */,
 			);
@@ -297,10 +313,15 @@
 		B22994E4D0C599811FBFDB8D /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				BB660FED980E2D6734E28EF6 /* AIModels.swift */,
+				F3DE48BEB35AF5A364E4F8AB /* AIService.swift */,
+				3D0833EDEC6F58E8F48B9569 /* AISettings.swift */,
+				1849D32E33E283C35F57E2F7 /* AITools.swift */,
 				76CB296F73622E4DE11D7F9F /* AnalyticsService.swift */,
 				D675AA7C51279338E1A84A0F /* CollectorClient.swift */,
 				1902A5F31FD5D8EFE4AAA872 /* CollectorManager.swift */,
 				F0DF43385958DF5D404A654A /* ExportService.swift */,
+				98DC9C3CFA33F96EF0E74318 /* Keychain.swift */,
 				60B44DAF1BE2C94EF0020D38 /* SecurityClient.swift */,
 			);
 			path = Services;
@@ -464,8 +485,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8B673A0D81C88A6660DBA652 /* AIModels.swift in Sources */,
+				05AA5CA80B6763A5697F16C3 /* AIService.swift in Sources */,
+				FA22803F758145509DB171F5 /* AISettings.swift in Sources */,
+				91698CC37B8F0934B5BBCB61 /* AITools.swift in Sources */,
 				0E4552028EBF5C2255B4BF78 /* AnalyticsService.swift in Sources */,
 				4A1B85A68450C16BE7751975 /* AppModel.swift in Sources */,
+				78E731A64B8DEDC6414D3E8C /* AskAIView.swift in Sources */,
 				CCDB9923891447D06D07737F /* ClientsView.swift in Sources */,
 				84C4CBCB5BC97784529898EB /* CollectorClient.swift in Sources */,
 				434E6EE4DD64988A349517B6 /* CollectorHealthView.swift in Sources */,
@@ -473,7 +499,9 @@
 				A4111BC520432DE8A3146747 /* EventsView.swift in Sources */,
 				9D9A9973D0258C6BF2D5359C /* ExportService.swift in Sources */,
 				CCF47B66A23A24C8FBF4C578 /* FlowsView.swift in Sources */,
+				7DC577BC653A8B2C081AFEF7 /* FormattedText.swift in Sources */,
 				16D68A1F7AF1E150F1E14583 /* InvestigationView.swift in Sources */,
+				6AE36C57E3F161F3E36C1D22 /* Keychain.swift in Sources */,
 				5D5ABDE7AE4119DB4539BC8A /* LiveActivityView.swift in Sources */,
 				DAB9E3D9B112F4E41A47151F /* MainView.swift in Sources */,
 				986A026A22C24992F4B1812A /* NetSentryApp.swift in Sources */,

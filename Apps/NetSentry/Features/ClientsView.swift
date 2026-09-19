@@ -30,6 +30,7 @@ struct ClientsView: View {
     }
 
     var body: some View {
+        GeometryReader { geo in
         HSplitView {
             VStack(spacing: 0) {
                 HStack {
@@ -48,11 +49,11 @@ struct ClientsView: View {
                     TableColumn("Bytes out") { c in Text(Format.bytes(bytes(c))).monospacedDigit() }.width(90)
                     TableColumn("Last seen") { c in Text(Format.relative(c.lastSeen)) }.width(100)
                 }
-                .accessibilityLabel("Clients table")
+                .accessibilityLabel("Clients table").frame(maxWidth: .infinity, maxHeight: .infinity)
                 Text("\(clients.count) clients known · identities come from IPFIX MAC/VLAN and DHCP syslog; names, tags and notes are yours.").font(.caption).foregroundStyle(.secondary).padding(6)
                 if let error { Text(error).font(.caption).foregroundStyle(.red).padding(6) }
             }
-            .frame(minWidth: 320)
+            .frame(minWidth: 320).frame(height: geo.size.height)
             Group {
                 if let id = selection, let c = clients.first(where: { $0.id == id }) {
                     ClientDetailView(client: c, others: clients.filter { $0.id != id }, series: series, range: preset.range(), detail: detail, detailPorts: detailPorts, alerts: alerts,
@@ -61,11 +62,13 @@ struct ClientsView: View {
                     ContentUnavailableView("Select a client", systemImage: "desktopcomputer", description: Text("Identity, address history, traffic, alerts and your notes for the selected client."))
                 }
             }
-            .frame(minWidth: 300)
+            .frame(minWidth: 300).frame(height: geo.size.height)
         }
+        .frame(width: geo.size.width, height: geo.size.height)
         .task { await load() }
         .onChange(of: preset) { _, _ in Task { await load() } }
         .onChange(of: selection) { _, _ in Task { await loadDetail() } }
+        }
     }
 
     private var origin: Origin { model.health?.demoWorkspace == true ? .simulated : .live }

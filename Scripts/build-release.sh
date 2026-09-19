@@ -5,6 +5,12 @@
 #   Scripts/build-release.sh --team-id ABCDE12345 --identity "Developer ID Application: Name (ABCDE12345)" \
 #                            [--notary-profile netsentry-notary] [--version 1.0.0] [--build 42] [--skip-notarize]
 #   Scripts/build-release.sh --dry-run          # ad-hoc signed release build, no notarization (CI smoke test)
+#   Scripts/build-release.sh --adhoc --version 0.1.0   # ad-hoc signed Release + DMG, no Developer ID / no notarization
+#
+# --adhoc produces an installable universal (Intel + Apple Silicon) DMG without an Apple Developer
+# certificate. The result is NOT
+# notarized, so on first launch macOS Gatekeeper shows a warning; the recipient opens it via right-click ->
+# Open, or clears quarantine with `xattr -dr com.apple.quarantine /Applications/NetSentry.app`.
 #
 # Prerequisites (see docs/release.md): Xcode 16+, xcodegen, a Developer ID Application certificate in the login
 # keychain, and `xcrun notarytool store-credentials <profile>` run once with an App Store Connect API key or
@@ -12,7 +18,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-TEAM_ID=""; IDENTITY=""; PROFILE=""; VERSION=""; BUILD=""; DRY_RUN=0; SKIP_NOTARIZE=0
+TEAM_ID=""; IDENTITY=""; PROFILE=""; VERSION=""; BUILD=""; DRY_RUN=0; ADHOC=0; SKIP_NOTARIZE=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --team-id) TEAM_ID="$2"; shift 2 ;;
@@ -21,12 +27,13 @@ while [[ $# -gt 0 ]]; do
     --version) VERSION="$2"; shift 2 ;;
     --build) BUILD="$2"; shift 2 ;;
     --dry-run) DRY_RUN=1; shift ;;
+    --adhoc) ADHOC=1; shift ;;
     --skip-notarize) SKIP_NOTARIZE=1; shift ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
-if [[ $DRY_RUN -eq 0 && ( -z "$TEAM_ID" || -z "$IDENTITY" ) ]]; then
-  echo "--team-id and --identity are required unless --dry-run" >&2; exit 2
+if [[ $DRY_RUN -eq 0 && $ADHOC -eq 0 && ( -z "$TEAM_ID" || -z "$IDENTITY" ) ]]; then
+  echo "--team-id and --identity are required unless --dry-run or --adhoc" >&2; exit 2
 fi
 
 OUT="build/release"; ARCHIVE="$OUT/NetSentry.xcarchive"; EXPORT="$OUT/export"
@@ -39,7 +46,7 @@ Scripts/generate-project.sh >/dev/null
 SETTINGS=()
 [[ -n "$VERSION" ]] && SETTINGS+=("MARKETING_VERSION=$VERSION")
 [[ -n "$BUILD" ]] && SETTINGS+=("CURRENT_PROJECT_VERSION=$BUILD")
-if [[ $DRY_RUN -eq 1 ]]; then
+if [[ $DRY_RUN -eq 1 || $ADHOC -eq 1 ]]; then
   SETTINGS+=("CODE_SIGN_IDENTITY=-" "CODE_SIGN_STYLE=Manual" "DEVELOPMENT_TEAM=" "NETSENTRY_TEAM_ID=TEAMID")
 else
   SETTINGS+=("CODE_SIGN_IDENTITY=$IDENTITY" "CODE_SIGN_STYLE=Manual" "DEVELOPMENT_TEAM=$TEAM_ID" "NETSENTRY_TEAM_ID=$TEAM_ID" "OTHER_CODE_SIGN_FLAGS=--timestamp")
@@ -51,7 +58,7 @@ xcodebuild -project NetSentry.xcodeproj -scheme NetSentry -configuration Release
 [[ -d "$ARCHIVE/Products/Applications/NetSentry.app" ]] || { echo "archive failed" >&2; exit 1; }
 
 APP="$ARCHIVE/Products/Applications/NetSentry.app"
-if [[ $DRY_RUN -eq 0 ]]; then
+if [[ $DRY_RUN -eq 0 && $ADHOC -eq 0 ]]; then
   echo "==> Exporting with Developer ID"
   cat > "$OUT/exportOptions.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -77,6 +84,18 @@ plutil -p "$APP/Contents/Library/LaunchAgents/com.netsentry.collector.plist" | g
 
 if [[ $DRY_RUN -eq 1 ]]; then
   echo "==> Dry run complete: $APP (ad-hoc signed, not notarized)"; exit 0
+fi
+
+if [[ $ADHOC -eq 1 ]]; then
+  echo "==> Packaging ad-hoc DMG (universal, NOT notarized)"
+  DMG="$OUT/NetSentry-${VERSION:-dev}-universal.dmg"; STAGE="$OUT/dmg"
+  mkdir -p "$STAGE"; cp -R "$APP" "$STAGE/"; ln -s /Applications "$STAGE/Applications"
+  hdiutil create -volname "NetSentry ${VERSION:-dev}" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
+  codesign --force --sign - "$DMG"
+  shasum -a 256 "$DMG" | tee "$DMG.sha256"
+  echo "==> Done (ad-hoc, not notarized): $DMG"
+  echo "    Recipients must clear quarantine: xattr -dr com.apple.quarantine /Applications/NetSentry.app"
+  exit 0
 fi
 
 echo "==> Packaging DMG"

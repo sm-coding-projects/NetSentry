@@ -33,6 +33,7 @@ struct InvestigationView: View {
             .padding(10)
             Divider()
             if let inv = investigation {
+                GeometryReader { geo in
                 HSplitView {
                     Table(inv.entries.filter { kinds.contains($0.kind) }, selection: $selection) {
                         TableColumn("Time") { e in Text(e.time.date.formatted(date: .omitted, time: .standard)).monospacedDigit().fontWeight(e.isAnchor ? .bold : .regular) }.width(90)
@@ -40,9 +41,11 @@ struct InvestigationView: View {
                         TableColumn("What") { e in Text(e.title).lineLimit(1).fontWeight(e.isAnchor ? .bold : .regular) }
                         TableColumn("Relation") { e in Text(e.relations.joined(separator: " · ")).font(.caption).foregroundStyle(.secondary) }.width(220)
                     }
-                    .accessibilityLabel("Timeline table")                    .frame(minWidth: 560)
-                    if let id = selection, let e = inv.entries.first(where: { $0.id == id }) { entryDetail(e).frame(minWidth: 320, idealWidth: 380) }
-                    else { ContentUnavailableView("Select an entry", systemImage: "sidebar.right", description: Text("Full record. Pivot from any address or client into a new investigation.")).frame(minWidth: 320, idealWidth: 380) }
+                    .accessibilityLabel("Timeline table").frame(minWidth: 560).frame(height: geo.size.height)
+                    if let id = selection, let e = inv.entries.first(where: { $0.id == id }) { entryDetail(e).frame(minWidth: 320, idealWidth: 380).frame(height: geo.size.height) }
+                    else { ContentUnavailableView("Select an entry", systemImage: "sidebar.right", description: Text("Full record. Pivot from any address or client into a new investigation.")).frame(minWidth: 320, idealWidth: 380).frame(height: geo.size.height) }
+                }
+                .frame(width: geo.size.width, height: geo.size.height)
                 }
                 HStack {
                     Text("\(inv.entries.count) entries · \(Format.duration(inv.elapsed))\(inv.truncated ? " · truncated, narrow the window" : "") · relations describe shared attributes and timing, not causes").font(.caption).foregroundStyle(.secondary)
@@ -51,7 +54,7 @@ struct InvestigationView: View {
             } else if let error {
                 Text(error).foregroundStyle(.red).padding()
             } else {
-                ContentUnavailableView("Start an investigation", systemImage: "magnifyingglass", description: Text("Pick a flow, event, client, destination or alert anywhere in the app, or enter an address above."))
+                ContentUnavailableView("Start an investigation", systemImage: "magnifyingglass", description: Text("Pick a flow, event, client, destination or alert anywhere in the app, or enter an address above.")).frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .task { await load() }

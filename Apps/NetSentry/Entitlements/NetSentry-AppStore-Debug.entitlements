@@ -6,6 +6,9 @@
          sandboxed dashboard reaches the shared support directory via a temporary exception. -->
     <key>com.apple.security.app-sandbox</key>
     <true/>
+    <!-- Outbound HTTPS to the user-configured Ask AI provider (OpenAI/Anthropic-compatible). -->
+    <key>com.apple.security.network.client</key>
+    <true/>
     <key>com.apple.security.files.user-selected.read-write</key>
     <true/>
     <key>com.apple.security.files.bookmarks.app-scope</key>
