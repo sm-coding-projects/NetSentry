@@ -31,10 +31,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Select latest Xcode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
+      # Pin the same Xcode the project is developed against (26.6). The runner's "latest-stable"
+      # can resolve to an older Xcode (e.g. 26.3) whose stricter Swift 6 concurrency checking rejects
+      # code that builds cleanly on 26.6. build-release.sh honours DEVELOPER_DIR.
+      - name: Select Xcode 26.6
+        run: |
+          APP=$(ls -d /Applications/Xcode_26.6*.app 2>/dev/null | sort -V | tail -1)
+          if [ -z "$APP" ]; then
+            echo "Xcode 26.6 not found on this runner. Available:"; ls -d /Applications/Xcode_*.app; exit 1
+          fi
+          echo "DEVELOPER_DIR=$APP/Contents/Developer" >> "$GITHUB_ENV"
+          "$APP/Contents/Developer/usr/bin/xcodebuild" -version
 
       - name: Install XcodeGen
         run: brew install xcodegen
