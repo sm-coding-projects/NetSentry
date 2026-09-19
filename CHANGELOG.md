@@ -29,8 +29,9 @@ First public release. Phases 0–6 delivered.
   providers with configurable base URL/model; API key stored in the macOS Keychain.
 - **Exports** — CSV/JSON, Markdown incident reports, investigation bundles, with optional redaction.
 - **Packaging** — `Scripts/build-release.sh --adhoc` produces an installable universal (Intel + Apple
-  Silicon) DMG without a certificate; the notarized path remains for Developer ID builds. GitHub Actions
-  `release` workflow builds and publishes a DMG on every `v*` tag.
+  Silicon) DMG without a certificate; the notarized path remains for Developer ID builds.
+  `Scripts/publish-release.sh --version <x>` cuts a release locally (build DMG, tag, publish). The GitHub
+  Actions `release` workflow auto-builds tagged releases once runners ship Xcode 26.6 (it skips until then).
 
 ### Known limitations
 - Verified only against the UniFi UCG Fiber. No IPFIX over TCP/SCTP; no NetFlow v5/v9 or sFlow.

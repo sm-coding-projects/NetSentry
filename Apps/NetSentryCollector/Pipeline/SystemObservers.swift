@@ -24,8 +24,7 @@ final class SystemObservers {
             Task { await health.closeGap(.sleep) }
         })
         tokens.append(NotificationCenter.default.addObserver(forName: .NSSystemClockDidChange, object: nil, queue: .main) { [weak self] _ in
-            // Delivered on the main queue (queue: .main), so we are already on the main actor.
-            MainActor.assumeIsolated { self?.clockChanged(reason: "NSSystemClockDidChange") }
+            self?.clockChanged(reason: "NSSystemClockDidChange")
         })
         // Belt and braces: compare wall vs continuous clocks every 30 s to catch jumps without a notification.
         clockTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in

@@ -1,14 +1,13 @@
 name: release
 
-# Builds an installable NetSentry DMG and publishes it as a GitHub Release.
+# Builds an installable NetSentry DMG and publishes it as a GitHub Release when a version tag is pushed.
 #
-# Trigger: push a version tag (e.g. `v0.1.0`), or run manually from the Actions tab.
-#   git tag v0.1.0 && git push origin v0.1.0
+#   git tag v0.2.0 && git push origin v0.2.0
 #
-# By default this produces an ad-hoc-signed, NON-notarized arm64 DMG (no Apple Developer certificate
-# required). Recipients clear Gatekeeper on first launch (see the README). To ship a signed, notarized
-# build instead, follow docs/release.md on a machine with a Developer ID certificate, or extend this
-# workflow to import the certificate and call Scripts/build-release.sh with --team-id/--identity.
+# NetSentry builds with Xcode 26.6 (stricter/older Xcode rejects Swift 6 concurrency that 26.6 accepts).
+# GitHub-hosted runners do not ship Xcode 26.6 yet, so this workflow's build job SKIPS (it does not fail)
+# on runners without it — cut releases locally with `Scripts/publish-release.sh --version <x>` in the
+# meantime. Once the runners provide Xcode 26.6, tagged releases build and publish here automatically.
 
 on:
   push:
@@ -17,31 +16,44 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to build (e.g. 0.1.0)"
+        description: "Version to build (e.g. 0.2.0)"
         required: true
-        default: "0.1.0"
+        default: "0.0.0"
 
 permissions:
   contents: write
 
 jobs:
+  # Detect the required toolchain up front so the build job can skip cleanly when it is unavailable.
+  toolchain:
+    runs-on: macos-15
+    outputs:
+      xcode: ${{ steps.find.outputs.path }}
+      available: ${{ steps.find.outputs.available }}
+    steps:
+      - id: find
+        run: |
+          APP=$(ls -d /Applications/Xcode_26.6*.app 2>/dev/null | sort -V | tail -1 || true)
+          if [ -n "$APP" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "path=$APP" >> "$GITHUB_OUTPUT"
+            echo "Found required toolchain: $APP"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Xcode 26.6 is not on this runner yet — skipping the CI build."
+            echo "::notice::Cut the release locally: Scripts/publish-release.sh --version <x>"
+          fi
+
   build:
+    needs: toolchain
+    if: needs.toolchain.outputs.available == 'true'
     runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Pin the same Xcode the project is developed against (26.6). The runner's "latest-stable"
-      # can resolve to an older Xcode (e.g. 26.3) whose stricter Swift 6 concurrency checking rejects
-      # code that builds cleanly on 26.6. build-release.sh honours DEVELOPER_DIR.
       - name: Select Xcode 26.6
-        run: |
-          APP=$(ls -d /Applications/Xcode_26.6*.app 2>/dev/null | sort -V | tail -1)
-          if [ -z "$APP" ]; then
-            echo "Xcode 26.6 not found on this runner. Available:"; ls -d /Applications/Xcode_*.app; exit 1
-          fi
-          echo "DEVELOPER_DIR=$APP/Contents/Developer" >> "$GITHUB_ENV"
-          "$APP/Contents/Developer/usr/bin/xcodebuild" -version
+        run: echo "DEVELOPER_DIR=${{ needs.toolchain.outputs.xcode }}/Contents/Developer" >> "$GITHUB_ENV"
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -55,7 +67,6 @@ jobs:
             VERSION="${GITHUB_REF_NAME#v}"
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Building NetSentry $VERSION"
 
       - name: Build ad-hoc DMG
         run: |
@@ -78,7 +89,7 @@ jobs:
           name: NetSentry ${{ steps.version.outputs.version }}
           generate_release_notes: true
           body: |
-            Ad-hoc-signed (not notarized) Apple Silicon build.
+            Ad-hoc-signed (not notarized) universal build.
 
             **First launch:** right-click NetSentry → Open, or run
             `xattr -dr com.apple.quarantine /Applications/NetSentry.app`. See the README for setup.

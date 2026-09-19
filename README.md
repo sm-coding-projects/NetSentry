@@ -216,13 +216,16 @@ See [`docs/developer-setup.md`](docs/developer-setup.md) for build gotchas and
 
 - Versioned DMGs are published on the [**Releases**](https://github.com/sm-coding-projects/NetSentry/releases)
   page, each with a `.sha256` checksum. The app version comes from `MARKETING_VERSION` in `project.yml`.
-- Pushing a **`v*` tag** (e.g. `v0.1.0`) triggers the
-  [`release`](.github/workflows/release.yml) GitHub Actions workflow, which builds the app on an Apple Silicon
-  runner, packages the DMG, and creates the GitHub Release automatically:
+- **Cut a release locally** (the reliable path today) — one command builds the DMG, tags the commit, and
+  creates the GitHub Release:
   ```bash
   # after bumping MARKETING_VERSION in project.yml
-  git tag v0.1.0 && git push origin v0.1.0
+  Scripts/publish-release.sh --version 0.2.0
   ```
+- **CI:** the [`release`](.github/workflows/release.yml) GitHub Actions workflow runs on every `v*` tag.
+  NetSentry builds with **Xcode 26.6**, which GitHub-hosted runners do not ship yet, so the workflow's build
+  job **skips** (it does not fail) until they do — then tagged releases build and publish automatically.
+  Until then, use the local script above.
 - **Notarized releases:** CI produces an ad-hoc DMG so it works without a certificate. To ship a signed,
   notarized build, run `Scripts/build-release.sh --team-id … --identity … --notary-profile …` on a machine
   with a Developer ID certificate (or extend the [workflow](.github/workflows/release.yml) to import one) —
