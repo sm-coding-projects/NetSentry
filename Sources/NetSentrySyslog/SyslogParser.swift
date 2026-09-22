@@ -10,11 +10,19 @@ public protocol SyslogFamilyParser: Sendable {
     static var family: EventType { get }
     static var verified: Bool { get }
     static var description: String { get }
-    /// Returns true when the parser recognized the message and populated `event`.
+    /// True for parsers that only assign a family and extract no fields; such events stay `.partial`.
+    static var classifiesOnly: Bool { get }
+    /// Returns true when the parser recognized the message and populated `event`. A parser whose `family` is
+    /// `.unknown` sets `event.eventType` itself.
     func parse(_ event: inout SyslogEvent) -> Bool
 }
 
-/// Top-level syslog parser: header (RFC 5424 or 3164) then family parsers, else fallback.
+public extension SyslogFamilyParser {
+    static var classifiesOnly: Bool { false }
+}
+
+/// Top-level syslog parser: header (RFC 5424 or 3164), UniFi wrapper normalization, then family parsers in
+/// registry order (first claim wins), else fallback.
 public struct SyslogParser: Sendable {
     public static let headerParserName = "syslog-header"
     public static let headerParserVersion: UInt16 = 1
@@ -59,12 +67,14 @@ public struct SyslogParser: Sendable {
         event.parserName = Self.headerParserName
         event.parserVersion = Self.headerParserVersion
         event.parseStatus = .partial
+        UniFiDeviceTag.normalize(&event)
 
         for p in families where p.parse(&event) {
-            event.parserName = type(of: p).name
-            event.parserVersion = type(of: p).version
-            event.eventType = type(of: p).family
-            if event.parseStatus == .partial { event.parseStatus = .parsed }
+            let t = type(of: p)
+            event.parserName = t.name
+            event.parserVersion = t.version
+            if t.family != .unknown { event.eventType = t.family }
+            if event.parseStatus == .partial, !t.classifiesOnly { event.parseStatus = .parsed }
             return event
         }
         // Nothing recognizable (no PRI, no timestamp, no tag): keep the whole text verbatim as an unparsed event

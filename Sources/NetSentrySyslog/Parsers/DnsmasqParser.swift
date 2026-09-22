@@ -2,12 +2,13 @@ import Foundation
 import NetSentryCore
 
 /// dnsmasq DHCP lease lines (`DHCPACK(br0) 192.168.1.20 aa:bb:cc:dd:ee:ff hostname`), the DHCP server used
-/// by UniFi gateways. Public dnsmasq format; UniFi wrapping unverified until a fixture confirms it.
+/// by UniFi gateways. Public dnsmasq format; the UCG Fiber emits it unchanged behind its repeated-hostname
+/// wrapper (verified from captures, see the fixture).
 public struct DnsmasqDHCPParser: SyslogFamilyParser {
     public static let name = "dnsmasq-dhcp"
     public static let version: UInt16 = 1
     public static let family: EventType = .dhcp
-    public static let verified = false
+    public static let verified = true
     public static let description = "dnsmasq DHCPDISCOVER/OFFER/REQUEST/ACK/NAK/RELEASE lines"
 
     public init() {}

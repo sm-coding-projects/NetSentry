@@ -27,7 +27,7 @@ NetSentry/
 │   ├── NetSentryCore/               # domain models, ids, time, IP types, BoundedQueue, Branding
 │   ├── NetSentryIPC/                # XPC protocol, Codable envelopes, versioning, code-sign requirement
 │   ├── NetSentryIPFIX/              # IPFIX v10 decoder, template cache, exporter/session state
-│   ├── NetSentrySyslog/             # RFC 3164/5424 framing + UniFi parsers + fallback parser
+│   ├── NetSentrySyslog/             # RFC 3164/5424 framing + UniFi wrapper/CEF/family parsers + process table + fallback
 │   ├── NetSentryEnrichment/         # entity resolver, MMDBReader (GeoIP/ASN), service names, direction
 │   ├── NetSentryPersistence/        # SQLite wrapper, migrations, manifest, segment writer (DuckDB),
 │   │                                # retention/compaction, recovery, budget accounting

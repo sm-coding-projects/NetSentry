@@ -1,0 +1,22 @@
+# captured from a UCG Fiber, U6-Pro access points and USW switches (sanitized). UniFi wrapper shapes the plain RFC 3164 tag grammar rejects:
+# AP/switch "<mac>,<model>-<fw>:" prefix, path tags, empty and doubled tags, the gateway's repeated hostname, and a line without a timestamp.
+<30>Sep 23 06:29:08 AP-Kitchen 02ea14e31de9,U6-Pro-6.8.2+15592: /usr/sbin/hostapd[4628]: ap_handle_timer: register ap_handle_timer timeout for 02:da:7b:a0:2f:1a (306 seconds)
+<14>Sep 19 12:51:08 AP-Kitchen 02ea14e31de9,U6-Pro-6.8.2+15592: : wevent[4278]: wevent.ubnt_custom_event(): EVENT_STA_JOIN wifi0ap1: 02:29:e1:17:70:52 / 1
+<30>Sep 19 10:14:56 AP-Kitchen 02ea14e31de9,U6-Pro-6.8.2+15592: stahtd: stahtd[28816]: [STA-TRACKER].stahtd_dump_event(): {"message_type":"STA_ASSOC_TRACKER","mac":"02:d6:68:70:5a:05","vap":"wifi0ap3","event_type":"fastroam"}
+<6>Sep 19 10:14:57 AP-Office 02ea14e31ec1,U6-Pro-6.8.2+15592: kernel: [10530243.409256] wlan: [0:I:ANY] [UNSPECIFIED] vap-2(wifi0ap2): [02:d6:68:70:5a:05]recv auth frame with algorithm 0 seq 1 rssi:8 minrssi:0
+<6>Sep 19 10:14:57 AP-Office 02ea14e31ec1,U6-Pro-6.8.2+15592: kernel: [10530243.409256] [DHCP-SM] 02:bf:a0:81:ff:f6: r-2736077-r-2-a-983970
+<30>Sep 23 06:27:04 AP-Office 02ea14e31ec1,U6-Pro-6.8.2+15592: /sbin/udhcpc[32136]: udhcpc: lease of 192.168.99.60 obtained, lease time 86400
+<31>Sep 23 06:29:00 SW-Rack 02ecda4fa7ae,US-8-60W-7.5.15+17146: switch: LLDP: LLDP event 2 is not processed, intIfNum 1
+<31>Sep 23 06:29:00 SW-Rack 02ecda4fa7ae,US-8-60W-7.5.15+17146: switch: DHCP_SNP: update hostname Mac to binding entry
+<14>Sep 13 00:55:16 SW-Rack 02ecda4fa7ae,US-8-60W-7.5.15+17146: syslog: swctrl[4064]: libubnt.ubnt_set_mgmt_ipv4_gateway(): gateway 0xc0a86301
+<15>SW-Flex 02d61f1ad421,USW_FLEX_MINI-2.1.6.762: INF-DB: Send normal inform to [http://192.168.99.1:8080/inform] aes_gcm 1 Time 18413133
+<11>Sep 23 06:28:57 UCG-Fiber UCG-Fiber dpi-flow-stats[2847]: ubnt-dpi-util: connect: The socket was closed due to a timeout
+<85>Sep 19 19:25:17 UCG-Fiber UCG-Fiber sudo[671885]: ucs-update : PWD=/data/unifi-identity-update ; USER=root ; COMMAND=/sbin/ubnt-tools id
+<28>Sep 13 18:47:48 UCG-Fiber UCG-Fiber /usr/bin/teleportd[3875]: [peer 192.168.2.5]: connection closed because of 30s seconds inactivity
+<30>Sep 19 10:14:56 UCG-Fiber UCG-Fiber dnsmasq-dhcp[1097397]: DHCPREQUEST(br0) 192.168.99.128 02:bf:a0:81:ff:f6
+<86>Sep 18 19:50:01 UCG-Fiber UCG-Fiber CRON[9989]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+<4>Sep 13 18:49:03 UCG-Fiber UCG-Fiber kernel: tlprt0: assigned cached ifindex: 35
+<30>Sep 21 00:55:29 UCG-Fiber UCG-Fiber ubnt-idsips-daemon[3039]: 2026-09-21T00:55:29.008+1000	Info: RuleSet update success, try reload suricata
+<30>Sep 13 00:55:22 UCG-Fiber UCG-Fiber systemd[1]: Started Time & Date Service.
+<4>Sep 10 19:35:23 UCG-Fiber UCG-Fiber kernel: [WAN_LOCAL-D-4001]IN=eth4 OUT= MAC=24:5a:4c:11:22:33:00:11:22:33:44:55:08:00 SRC=203.0.113.7 DST=192.168.99.1 LEN=60 TOS=0x00 PREC=0x00 TTL=53 ID=12345 DF PROTO=TCP SPT=44321 DPT=22 WINDOW=65535 RES=0x00 SYN URGP=0
+<30>Sep 12 10:00:00 UCG-Fiber UCG-Fiber some-new-daemon[42]: something unlisted happened

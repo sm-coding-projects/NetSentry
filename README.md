@@ -37,8 +37,10 @@ built-in **Ask AI** assistant — all on-device. **No cloud, no account, no tele
   loss detection, restart & clock-skew detection, and PSAMP sampling. Sampled counts are shown with a
   `sampled ×N` badge and never silently scaled.
 - **Syslog ingestion** — RFC 3164 / RFC 5424 parsing with RFC 6587 TCP framing and family parsers
-  (netfilter, dnsmasq DHCP/DNS, OpenSSH, Suricata) behind a versioned registry, with verbatim fallback for
-  unmatched lines.
+  (netfilter, dnsmasq DHCP/DNS, OpenSSH, Suricata, UniFi Network CEF events) behind a versioned registry.
+  UniFi access-point and switch wrappers (`<mac>,<model>-<firmware>:`) are unwrapped, and lines no field
+  parser claims are still filed by process name (hostapd → Client, teleportd → VPN, sudo → Authentication…),
+  with verbatim fallback for anything else.
 - **Local columnar storage** — DuckDB → Parquet segments (ZSTD, SHA-256 verified), minute/hour/day rollups,
   a hot in-memory ring buffer, and **budget-based retention** that survives a hard crash. ~30 bytes/flow.
 - **Analytics dashboard** — traffic over time (with collection gaps shaded, never faked as zero), top
@@ -141,7 +143,7 @@ UniFi Network → **Settings › CyberSecure › Traffic Logging › NetFlow**
 | Setting | Value |
 |---|---|
 | Server / destination | Your Mac's LAN IP |
-| Port | **2055** (UniFi default; NetSentry also listens on 4739) |
+| Port | **2055** (UniFi default; NetSentry also listens on 4739). Change either port in **Settings › Listeners** or during setup |
 | Version | IPFIX (NetFlow v10) |
 
 The UCG Fiber exports **sampled** flows (observed **1:512**). NetSentry reads the sampling rate from the
@@ -155,7 +157,7 @@ Syslog** on newer firmware)
 | Setting | Value |
 |---|---|
 | Server | Your Mac's LAN IP |
-| Port | **5514** (UDP) |
+| Port | **5514** (UDP). Change it in **Settings › Listeners** or during setup |
 | Protocol | UDP (TCP optional — enable the TCP listener in NetSentry Settings) |
 
 > ⚠️ **Do not use port 514.** Ports below 1024 are privileged on macOS and the collector runs as your user,

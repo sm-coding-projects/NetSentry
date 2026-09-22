@@ -34,18 +34,28 @@ struct SettingsView: View {
             }
         }
         SwiftUI.Section("Listeners") {
-            ForEach(d.listeners) { l in
-                HStack {
-                    Toggle(isOn: l.enabled) { Text("\(l.wrappedValue.kind.label) over \(l.wrappedValue.transport.label)") }.frame(width: 190, alignment: .leading)
-                    TextField("Port", value: l.port, format: .number.grouping(.never)).frame(width: 80).labelsHidden()
-                        .accessibilityLabel("\(l.wrappedValue.kind.label) \(l.wrappedValue.transport.label) port")
-                    Picker("Interface", selection: Binding(get: { l.wrappedValue.interface ?? "" }, set: { l.wrappedValue.interface = $0.isEmpty ? nil : $0 })) {
-                        Text("All interfaces").tag("")
-                        ForEach(NetworkInterfaces.list()) { i in Text("\(i.name) (\(i.addresses.first ?? ""))").tag(i.name) }
-                    }.labelsHidden()
+            // Rows are keyed by index, not by the listener id, because the id contains the port: keying by id would
+            // rebuild the row (and drop keyboard focus) the moment the port is edited.
+            ForEach(d.wrappedValue.listeners.indices, id: \.self) { i in
+                let l = d.listeners[i]
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
+                        Toggle(isOn: l.enabled) { Text("\(l.wrappedValue.kind.label) over \(l.wrappedValue.transport.label)") }.frame(width: 190, alignment: .leading)
+                        Text("Port").foregroundStyle(.secondary)
+                        TextField("Port", value: l.port, format: .number.grouping(.never))
+                            .textFieldStyle(.roundedBorder).monospacedDigit().frame(width: 80).labelsHidden()
+                            .accessibilityLabel("\(l.wrappedValue.kind.label) \(l.wrappedValue.transport.label) port")
+                        Picker("Interface", selection: Binding(get: { l.wrappedValue.interface ?? "" }, set: { l.wrappedValue.interface = $0.isEmpty ? nil : $0 })) {
+                            Text("All interfaces").tag("")
+                            ForEach(NetworkInterfaces.list()) { i in Text("\(i.name) (\(i.addresses.first ?? ""))").tag(i.name) }
+                        }.labelsHidden()
+                    }
+                    if let problem = ListenerPortCheck.problem(for: l.wrappedValue, in: d.wrappedValue.listeners) {
+                        Text(problem).font(.caption).foregroundStyle(.red)
+                    }
                 }
             }
-            Text("Ports 1024–65535. Configure the UniFi gateway to send NetFlow (IPFIX) and remote syslog to this Mac's address on these ports.")
+            Text("Type a port (1024–65535) and click Apply; only the changed listener restarts. Then point the UniFi gateway's NetFlow (IPFIX) and remote syslog at this Mac's address on these ports.")
                 .font(.caption).foregroundStyle(.secondary)
         }
         SwiftUI.Section("Storage") {
@@ -331,5 +341,16 @@ struct ExpectationsEditor: View {
     private func load() async {
         do { expectations = try await security.expectations(); suppressions = try await security.suppressions(); error = nil }
         catch { self.error = "Collector not reachable: \(error.localizedDescription)" }
+    }
+}
+
+
+/// Inline port validation shared by Settings and the setup wizard; mirrors `CollectorConfiguration.validate()`.
+enum ListenerPortCheck {
+    static func problem(for l: ListenerConfiguration, in all: [ListenerConfiguration]) -> String? {
+        if l.port < 1024 { return "Port \(l.port) is privileged on macOS; choose 1024–65535." }
+        let clash = all.contains { $0.id != l.id && $0.enabled && l.enabled && $0.transport == l.transport && $0.port == l.port }
+        if clash { return "Port \(l.port)/\(l.transport.label) is used by another listener." }
+        return nil
     }
 }

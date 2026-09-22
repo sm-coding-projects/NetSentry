@@ -70,11 +70,19 @@ final class SyslogParserTests: XCTestCase {
         let allow = parse(lines[1]); XCTAssertEqual(allow.action, .allow); XCTAssertEqual(allow.outInterface, "eth4"); XCTAssertEqual(allow.dstPort, 443)
         let reject = parse(lines[2]); XCTAssertEqual(reject.action, .reject); XCTAssertEqual(reject.protocolNumber, 1); XCTAssertEqual(reject.attributes["fw.type"], "8")
         let v6 = parse(lines[3]); XCTAssertEqual(v6.srcIP?.description, "2001:db8::7"); XCTAssertEqual(v6.protocolNumber, 17); XCTAssertEqual(v6.action, .unknown); XCTAssertNil(v6.ruleName)
+        // Real UCG Fiber zone-policy shape: repeated hostname, no kernel tag, DESCR="…" rule name, trailing space.
+        let zone = parse(lines[4])
+        XCTAssertEqual(zone.parserName, "netfilter-log"); XCTAssertEqual(zone.parseStatus, .parsed); XCTAssertNil(zone.appName); XCTAssertEqual(zone.hostname, "UCG-Fiber")
+        XCTAssertEqual(zone.ruleName, "Internal_to_MediaServer"); XCTAssertEqual(zone.attributes["fw.label"], "LAN_DMZ-A-10000"); XCTAssertEqual(zone.ruleID, "10000"); XCTAssertEqual(zone.action, .allow)
+        XCTAssertEqual(zone.srcIP?.description, "192.168.99.31"); XCTAssertEqual(zone.dstIP?.description, "192.168.30.80"); XCTAssertEqual(zone.dstPort, 8989); XCTAssertEqual(zone.outInterface, "br30")
+        XCTAssertEqual(zone.attributes["fw.mark"], "1a0000"); XCTAssertEqual(zone.attributes["fw.flags"], "DF SYN"); XCTAssertEqual(zone.deviceID, "02:d5:18:8c:f7:71")
+        let zone2 = parse(lines[5]); XCTAssertEqual(zone2.ruleName, "HA_to_Solar"); XCTAssertEqual(zone2.dstPort, 502); XCTAssertEqual(zone2.attributes["fw.flags"], "DF ACK PSH")
     }
 
     func testDHCPAndDNS() throws {
         let dhcp = try fixture("unifi-dhcp-dnsmasq").map { parse($0) }
-        XCTAssertEqual(dhcp.map(\.eventType), [.dhcp, .dhcp, .dhcp, .dhcp])
+        XCTAssertEqual(dhcp.map(\.eventType), [.dhcp, .dhcp, .dhcp, .dhcp, .dhcp])
+        XCTAssertEqual(dhcp[4].parserName, "dnsmasq-dhcp"); XCTAssertEqual(dhcp[4].appName, "dnsmasq-dhcp"); XCTAssertEqual(dhcp[4].procID, "1097397"); XCTAssertEqual(dhcp[4].srcIP?.description, "192.168.99.128"); XCTAssertEqual(dhcp[4].deviceID, "02:bf:a0:81:ff:f6")
         XCTAssertEqual(dhcp[0].deviceID, "02:11:22:33:44:55"); XCTAssertNil(dhcp[0].srcIP); XCTAssertEqual(dhcp[0].attributes["dhcp.message"], "DISCOVER")
         XCTAssertEqual(dhcp[3].srcIP?.description, "192.168.99.31"); XCTAssertEqual(dhcp[3].attributes["dhcp.hostname"], "nas-01"); XCTAssertEqual(dhcp[3].inInterface, "br0")
         let dns = try fixture("unifi-dns-dnsmasq").map { parse($0) }
@@ -94,6 +102,91 @@ final class SyslogParserTests: XCTestCase {
         XCTAssertEqual(ids[0].srcIP?.description, "203.0.113.99"); XCTAssertEqual(ids[0].srcPort, 41234); XCTAssertEqual(ids[0].dstPort, 22); XCTAssertEqual(ids[0].protocolNumber, 6)
         XCTAssertEqual(ids[1].action, .block); XCTAssertEqual(ids[1].idsSignatureID, 2100498)
         XCTAssertEqual(ids[2].protocolNumber, 1); XCTAssertEqual(ids[2].srcIP?.description, "203.0.113.5"); XCTAssertNil(ids[2].srcPort)
+    }
+
+    func testUniFiDeviceWrappersAndTags() throws {
+        let e = try fixture("unifi-device-tag").map { parse($0) }
+        XCTAssertEqual(e.count, 20)
+        for x in e { XCTAssertEqual(x.attributes["unifi.device"], "true", x.raw ?? "") }
+
+        // AP "<mac>,<model>-<fw>:" wrapper with a path tag.
+        XCTAssertEqual(e[0].hostname, "AP-Kitchen"); XCTAssertEqual(e[0].appName, "hostapd"); XCTAssertEqual(e[0].procID, "4628")
+        XCTAssertEqual(e[0].deviceID, "02:ea:14:e3:1d:e9"); XCTAssertEqual(e[0].attributes["unifi.model"], "U6-Pro"); XCTAssertEqual(e[0].attributes["unifi.firmware"], "6.8.2+15592")
+        XCTAssertTrue(e[0].message.hasPrefix("ap_handle_timer: register"), e[0].message)
+        XCTAssertEqual(e[0].eventType, .client); XCTAssertEqual(e[0].parserName, "process-table"); XCTAssertEqual(e[0].parseStatus, .partial)
+        XCTAssertEqual(e[0].attributes["class.by"], "process:hostapd")
+        // Empty tag, doubled tag, kernel wlan / DHCP-SM prefixes.
+        XCTAssertEqual(e[1].appName, "wevent"); XCTAssertEqual(e[1].procID, "4278"); XCTAssertEqual(e[1].eventType, .client); XCTAssertTrue(e[1].message.hasPrefix("wevent.ubnt_custom_event"))
+        XCTAssertEqual(e[2].appName, "stahtd"); XCTAssertEqual(e[2].procID, "28816"); XCTAssertEqual(e[2].eventType, .client)
+        XCTAssertEqual(e[3].appName, "kernel"); XCTAssertNil(e[3].procID); XCTAssertEqual(e[3].eventType, .client); XCTAssertEqual(e[3].attributes["class.by"], "kernel:wlan")
+        XCTAssertEqual(e[4].eventType, .dhcp)
+        XCTAssertEqual(e[5].appName, "udhcpc"); XCTAssertEqual(e[5].procID, "32136"); XCTAssertEqual(e[5].eventType, .dhcp); XCTAssertTrue(e[5].message.hasPrefix("udhcpc: lease of"))
+        // Switch: "switch:" tag is kept (the inner word has no pid), DHCP snooping by message prefix.
+        XCTAssertEqual(e[6].appName, "switch"); XCTAssertEqual(e[6].eventType, .unifiOther); XCTAssertEqual(e[6].attributes["unifi.model"], "US-8-60W"); XCTAssertEqual(e[6].attributes["unifi.firmware"], "7.5.15+17146")
+        XCTAssertEqual(e[7].eventType, .dhcp)
+        XCTAssertEqual(e[8].appName, "swctrl"); XCTAssertEqual(e[8].procID, "4064"); XCTAssertEqual(e[8].eventType, .unifiOther)
+        // No timestamp at all.
+        XCTAssertNil(e[9].eventTime); XCTAssertEqual(e[9].hostname, "SW-Flex"); XCTAssertEqual(e[9].appName, "INF-DB"); XCTAssertEqual(e[9].attributes["unifi.model"], "USW_FLEX_MINI"); XCTAssertEqual(e[9].attributes["unifi.firmware"], "2.1.6.762"); XCTAssertEqual(e[9].eventType, .unifiOther)
+        // Gateway lines repeat the hostname.
+        XCTAssertEqual(e[10].hostname, "UCG-Fiber"); XCTAssertEqual(e[10].appName, "dpi-flow-stats"); XCTAssertEqual(e[10].procID, "2847"); XCTAssertTrue(e[10].message.hasPrefix("ubnt-dpi-util: connect")); XCTAssertEqual(e[10].eventType, .unifiOther)
+        XCTAssertEqual(e[11].appName, "sudo"); XCTAssertEqual(e[11].eventType, .auth)
+        XCTAssertEqual(e[12].appName, "teleportd"); XCTAssertEqual(e[12].procID, "3875"); XCTAssertEqual(e[12].eventType, .vpn)
+        XCTAssertEqual(e[13].parserName, "dnsmasq-dhcp"); XCTAssertEqual(e[13].parseStatus, .parsed); XCTAssertEqual(e[13].srcIP?.description, "192.168.99.128"); XCTAssertEqual(e[13].deviceID, "02:bf:a0:81:ff:f6")
+        XCTAssertEqual(e[14].appName, "CRON"); XCTAssertEqual(e[14].eventType, .auth)
+        XCTAssertEqual(e[15].eventType, .system); XCTAssertEqual(e[15].attributes["class.by"], "process:kernel")
+        XCTAssertEqual(e[16].eventType, .ids)
+        XCTAssertEqual(e[17].eventType, .system); XCTAssertEqual(e[17].attributes["class.by"], "process-prefix:systemd")
+        // Netfilter behind the repeated hostname: the rule label must come out clean.
+        XCTAssertEqual(e[18].parserName, "netfilter-log"); XCTAssertEqual(e[18].ruleName, "WAN_LOCAL-D-4001"); XCTAssertEqual(e[18].action, .deny); XCTAssertEqual(e[18].appName, "kernel")
+        // Unlisted daemon on a recognized UniFi device defaults to System.
+        XCTAssertEqual(e[19].appName, "some-new-daemon"); XCTAssertEqual(e[19].eventType, .system); XCTAssertEqual(e[19].attributes["class.by"], "unifi-device-default")
+
+        // Non-UniFi lines are left alone: unknown app names stay Unknown, plain tags are untouched.
+        let plain = parse("<14>Sep 10 19:35:23 gateway myapp[7]: hello")
+        XCTAssertNil(plain.attributes["unifi.device"]); XCTAssertEqual(plain.appName, "myapp"); XCTAssertEqual(plain.eventType, .unknown); XCTAssertEqual(plain.parserName, "syslog-header")
+        let known = parse("<14>Sep 10 19:35:23 gateway teleportd[7]: hello")
+        XCTAssertEqual(known.eventType, .vpn, "table entries apply everywhere; only the System default is UniFi-only")
+    }
+
+    func testCEFEvents() throws {
+        let e = try fixture("unifi-cef").map { parse($0) }
+        XCTAssertEqual(e.count, 11)
+        for x in e.dropLast() {
+            XCTAssertEqual(x.parserName, "cef"); XCTAssertEqual(x.parseStatus, .parsed); XCTAssertFalse(x.priorityPresent); XCTAssertNotNil(x.eventTime)
+            XCTAssertEqual(x.hostname, "UCG-Fiber"); XCTAssertEqual(x.appName, "UniFi Network"); XCTAssertEqual(x.attributes["cef.vendor"], "Ubiquiti")
+        }
+        let threat = e[0]
+        XCTAssertEqual(threat.eventType, .ids); XCTAssertEqual(threat.ruleID, "200"); XCTAssertEqual(threat.ruleName, "Threat Detected")
+        XCTAssertEqual(threat.idsSignature, "ET CINS Active Threat Intelligence Poor Reputation IP group 249"); XCTAssertEqual(threat.idsSignatureID, 2403548)
+        XCTAssertEqual(threat.idsCategory, "CINS Army Reputation List"); XCTAssertEqual(threat.idsSeverity, 2, "medium risk → Suricata-style priority 2")
+        XCTAssertEqual(threat.srcPort, 47117); XCTAssertEqual(threat.dstPort, 43284); XCTAssertEqual(threat.protocolNumber, 17); XCTAssertEqual(threat.action, .allow)
+        XCTAssertEqual(threat.deviceID, "02:0c:29:e7:8b:ac"); XCTAssertNil(threat.srcIP)
+        XCTAssertEqual(threat.attributes["cef.deviceOutboundInterface"], "Internet 1", "values keep their spaces")
+        XCTAssertEqual(threat.attributes["cef.UNIFIflowStartTime"], "Sep 20, 2026 at 12:55:26.895 PM")
+        XCTAssertEqual(threat.attributes["cef.severity"], "7"); XCTAssertEqual(threat.attributes["cef.product_version"], "10.6.106")
+        XCTAssertTrue(threat.message.hasPrefix("A network intrusion attempt"), "msg= becomes the readable message; raw keeps the CEF line")
+        XCTAssertTrue(threat.raw!.contains("CEF:0|Ubiquiti"))
+        XCTAssertEqual(e[1].idsSeverity, 1); XCTAssertEqual(e[1].idsCategory, "P2P"); XCTAssertEqual(e[1].idsSignatureID, 2008581)
+        let connected = e[2]
+        XCTAssertEqual(connected.eventType, .client); XCTAssertEqual(connected.deviceID, "02:4a:39:d2:38:67"); XCTAssertEqual(connected.srcIP?.description, "192.168.20.95")
+        XCTAssertEqual(connected.ruleName, "WiFi Client Connected"); XCTAssertEqual(connected.attributes["cef.UNIFIwifiName"], "Home-IoT"); XCTAssertNil(connected.action)
+        XCTAssertEqual(e[3].eventType, .client); XCTAssertEqual(e[4].eventType, .client); XCTAssertEqual(e[5].eventType, .client); XCTAssertEqual(e[5].deviceID, "02:24:11:14:61:fe")
+        XCTAssertEqual(e[6].eventType, .auth); XCTAssertEqual(e[6].username, "admin"); XCTAssertEqual(e[6].srcIP?.description, "192.168.99.100")
+        XCTAssertEqual(e[7].eventType, .vpn); XCTAssertEqual(e[7].username, "UTR 02:41:b2:aa:76:57"); XCTAssertEqual(e[7].srcIP?.description, "192.168.2.5")
+        XCTAssertEqual(e[8].eventType, .system); XCTAssertEqual(e[8].deviceID, "02:0b:8b:1a:c9:10"); XCTAssertEqual(e[8].ruleID, "112")
+        XCTAssertEqual(e[9].eventType, .system); XCTAssertEqual(e[9].attributes["cef.UNIFIreportedDuration"], "22s")
+        // Generic (non-UniFi) CEF inside an RFC 5424 message, with escapes.
+        let generic = e[10]
+        XCTAssertEqual(generic.parserName, "cef"); XCTAssertEqual(generic.eventType, .system); XCTAssertEqual(generic.appName, "vendorapp")
+        XCTAssertEqual(generic.srcIP?.description, "203.0.113.9"); XCTAssertEqual(generic.dstIP?.description, "192.168.99.10"); XCTAssertEqual(generic.dstPort, 22); XCTAssertEqual(generic.protocolNumber, 6)
+        XCTAssertEqual(generic.action, .block); XCTAssertEqual(generic.message, "A=B \\ slash"); XCTAssertEqual(generic.ruleName, "Blocked connection")
+    }
+
+    func testCEFHeaderEscapesAndRejects() {
+        let esc = parse("<14>Sep 10 19:35:23 h CEF:0|Ac\\|me|Fire\\\\wall|1|7|Pipe \\| name|3|src=10.0.0.1")
+        XCTAssertEqual(esc.parserName, "cef"); XCTAssertEqual(esc.attributes["cef.vendor"], "Ac|me"); XCTAssertEqual(esc.attributes["cef.product"], "Fire\\wall"); XCTAssertEqual(esc.ruleName, "Pipe | name")
+        XCTAssertNotEqual(parse("<14>Sep 10 19:35:23 h CEF:0|only|three").parserName, "cef")
+        XCTAssertNotEqual(parse("<14>Sep 10 19:35:23 h CEF: not a header").parserName, "cef")
     }
 
     func testFallbackKeepsEverything() throws {
@@ -148,8 +241,14 @@ final class SyslogParserTests: XCTestCase {
 
     func testRegistryDescribesEveryParserWithVersions() {
         let d = ParserRegistry.descriptors
-        XCTAssertTrue(d.contains { $0.name == "netfilter-log" && $0.version == 1 && !$0.verified })
+        XCTAssertTrue(d.contains { $0.name == "netfilter-log" && $0.version == 2 && $0.verified })
+        XCTAssertTrue(d.contains { $0.name == "dnsmasq-dhcp" && $0.verified })
+        XCTAssertTrue(d.contains { $0.name == "openssh-auth" && !$0.verified })
         XCTAssertTrue(d.contains { $0.name == "syslog-header" && $0.verified })
+        XCTAssertTrue(d.contains { $0.name == "unifi-device-tag" && $0.verified })
+        XCTAssertTrue(d.contains { $0.name == "cef" && $0.verified && $0.family == .unknown })
+        XCTAssertTrue(d.contains { $0.name == "process-table" && $0.verified })
+        XCTAssertTrue(ParserRegistry.defaultParsers.last is ProcessTableParser, "the process table must classify last")
         XCTAssertFalse(ParserRegistry.combinedVersion.isEmpty)
     }
 }

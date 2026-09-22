@@ -79,6 +79,20 @@ struct SetupWizardView: View {
                     }.font(.callout).frame(maxWidth: .infinity, alignment: .leading)
                 }
                 LabeledContent("This Mac's addresses") { Text(NetworkInterfaces.list().filter(\.isUp).flatMap { i in i.addresses.map { "\($0) (\(i.name))" } }.joined(separator: ", ")).textSelection(.enabled) }
+                GroupBox("Ports this Mac listens on") {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(draft.listeners.indices, id: \.self) { i in
+                            HStack {
+                                Toggle(isOn: $draft.listeners[i].enabled) { Text("\(draft.listeners[i].kind.label) over \(draft.listeners[i].transport.label)") }.frame(width: 190, alignment: .leading)
+                                TextField("Port", value: $draft.listeners[i].port, format: .number.grouping(.never))
+                                    .textFieldStyle(.roundedBorder).monospacedDigit().frame(width: 80).labelsHidden()
+                                    .accessibilityLabel("\(draft.listeners[i].kind.label) \(draft.listeners[i].transport.label) port")
+                                if let problem = ListenerPortCheck.problem(for: draft.listeners[i], in: draft.listeners) { Text(problem).font(.caption).foregroundStyle(.red) }
+                            }
+                        }
+                        Text("Change these if the defaults clash with something else on this Mac; the instructions above follow along. Ports can be changed later in Settings → Listeners.").font(.caption).foregroundStyle(.secondary)
+                    }.frame(maxWidth: .infinity, alignment: .leading)
+                }
                 Text("Ports below 1024 (the syslog default 514) cannot be used because the collector runs as your user; 5514 is the default here.").font(.caption).foregroundStyle(.secondary)
                 Text("Full guide: docs/unifi-configuration.md").font(.caption).foregroundStyle(.secondary)
             }

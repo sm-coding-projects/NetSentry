@@ -3,14 +3,15 @@ import NetSentryCore
 
 /// Linux netfilter `LOG` target lines (`IN=… OUT=… SRC=… DST=… PROTO=… SPT=… DPT=…`), which UniFi gateways
 /// emit for firewall rules with logging enabled, prefixed by a bracketed rule label such as
-/// `[WAN_LOCAL-D-4001]`. The key=value grammar is the public kernel format; the prefix grammar is
-/// interpreted loosely (label kept verbatim, action guessed from a `-A-`/`-D-`/`-R-` token) until
-/// confirmed by a real UCG Fiber fixture.
+/// `[WAN_LOCAL-D-4001]`. The key=value grammar is the public kernel format. The UCG Fiber (UniFi OS 5.1,
+/// verified from captures) writes zone-policy lines as `[LAN_DMZ-A-10000] DESCR="Internal_to_MediaServer" IN=…`
+/// with no `kernel:` tag: the label carries the zone pair, the action letter (`A`/`D`/`R`) and the rule index,
+/// and `DESCR` is the rule's name in the UniFi UI, which becomes `ruleName` when present.
 public struct NetfilterParser: SyslogFamilyParser {
     public static let name = "netfilter-log"
-    public static let version: UInt16 = 1
+    public static let version: UInt16 = 2
     public static let family: EventType = .firewall
-    public static let verified = false
+    public static let verified = true
     public static let description = "Linux netfilter LOG key=value firewall lines with a UniFi rule prefix"
 
     public init() {}
@@ -22,9 +23,17 @@ public struct NetfilterParser: SyslogFamilyParser {
         if let inRange = rest.range(of: "IN=") {
             let prefix = rest[rest.startIndex..<inRange.lowerBound].trimmingCharacters(in: .whitespaces)
             if !prefix.isEmpty {
-                let label = prefix.trimmingCharacters(in: CharacterSet(charactersIn: "[] "))
-                e.ruleName = label
+                var labelText = Substring(prefix)
+                var descr: String?
+                if let d = prefix.range(of: #"DESCR="[^"]*""#, options: .regularExpression) {
+                    descr = String(prefix[d].dropFirst(7).dropLast())
+                    labelText = prefix[prefix.startIndex..<d.lowerBound]
+                }
+                let label = labelText.trimmingCharacters(in: CharacterSet(charactersIn: "[] "))
+                e.ruleName = (descr?.isEmpty == false ? descr : nil) ?? label
                 e.attributes["fw.prefix"] = prefix
+                e.attributes["fw.label"] = label
+                if let descr { e.attributes["fw.descr"] = descr }
                 let upper = label.uppercased()
                 let tokens = upper.split(whereSeparator: { $0 == "-" || $0 == " " || $0 == "_" })
                 if tokens.contains("D") || upper.contains("DROP") || tokens.contains("DENY") { e.action = .deny }

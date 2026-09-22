@@ -10,9 +10,12 @@ Honest list of what NetSentry does not do (yet) and where it depends on things o
   the first template are buffered (up to a limit) and decoded when it arrives; a restart therefore loses at
   most the pre-template window, which is recorded as a warning.
 - Remote syslog from UniFi OS must be pointed at port 5514 (or any port ≥ 1024): the collector runs as the
-  logged-in user and cannot bind 514. Syslog families are parsed by format families (netfilter, dnsmasq,
-  OpenSSH, Suricata fast); messages that match none are kept verbatim, searchable, and marked unparsed.
-  UniFi has not published its syslog formats; parsers carry `verified=false` until real fixtures confirm them.
+  logged-in user and cannot bind 514. The port is editable in Settings › Listeners and in the setup wizard.
+  Syslog families are parsed by format families (netfilter, dnsmasq, OpenSSH, Suricata fast, UniFi CEF);
+  lines no field parser claims are filed by process name (a fixed table of UniFi gateway, AP and switch
+  daemons) with no fields extracted, and anything else is kept verbatim, searchable, and marked unparsed.
+  UniFi has not published its syslog formats; the OpenSSH and Suricata-fast parsers carry `verified=false`
+  until real fixtures confirm them (netfilter, dnsmasq DHCP, CEF and the wrapper handling are verified).
 - IPFIX over TCP/SCTP, NetFlow v5/v9 and sFlow are not supported.
 
 ## Platform

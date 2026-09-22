@@ -12,7 +12,8 @@ public struct ParserDescriptor: Sendable, Hashable, Codable {
 /// Ordered list of family parsers; first claim wins. Order matters: specific formats before generic ones.
 public enum ParserRegistry {
     public static let defaultParsers: [any SyslogFamilyParser] = [
-        SuricataFastParser(), NetfilterParser(), DnsmasqDHCPParser(), DnsmasqDNSParser(), OpenSSHParser(),
+        CEFParser(), SuricataFastParser(), NetfilterParser(), DnsmasqDHCPParser(), DnsmasqDNSParser(), OpenSSHParser(),
+        ProcessTableParser(),   // must stay last: classifies whatever the field parsers left
     ]
 
     public static var descriptors: [ParserDescriptor] {
@@ -21,6 +22,7 @@ public enum ParserRegistry {
             return ParserDescriptor(name: t.name, version: t.version, family: t.family, verified: t.verified, description: t.description)
         } + [
             ParserDescriptor(name: SyslogParser.headerParserName, version: SyslogParser.headerParserVersion, family: .unknown, verified: true, description: "RFC 3164 / RFC 5424 header, PRI, timestamps, structured data"),
+            ParserDescriptor(name: UniFiDeviceTag.name, version: UniFiDeviceTag.version, family: .unknown, verified: true, description: UniFiDeviceTag.description),
             ParserDescriptor(name: SyslogParser.fallbackParserName, version: SyslogParser.fallbackParserVersion, family: .unknown, verified: true, description: "Keeps unrecognized messages verbatim as unparsed events"),
         ]
     }
