@@ -18,6 +18,7 @@
 		3A811F30922719E18D3B47A1 /* NetSentryPersistence in Frameworks */ = {isa = PBXBuildFile; productRef = D9FA0A807B1406D421123E68 /* NetSentryPersistence */; };
 		409B6DEA2665A49EA03F74D8 /* NetworkListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 192A70BCB94D48153EFF3811 /* NetworkListener.swift */; };
 		4141032DB44414C426465A9F /* NetSentryDetection in Frameworks */ = {isa = PBXBuildFile; productRef = E2AD0E4CB30D0228B306A28B /* NetSentryDetection */; };
+		42984E3548BAA244F937CA0C /* AppIcon.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 031F9545A071488ACEF35C31 /* AppIcon.xcassets */; };
 		434E6EE4DD64988A349517B6 /* CollectorHealthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FDA47AD1330D1F594E63B1B /* CollectorHealthView.swift */; };
 		460D5E4735952F436F67DBF6 /* XPCServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5088B199BD18ED70FCC02B74 /* XPCServer.swift */; };
 		484980ED772567F078F16B9E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F6628574D7602DE32A6AA31 /* SettingsView.swift */; };
@@ -62,6 +63,7 @@
 		E2D437EA5A8CB37842F512B2 /* NetSentryCore in Frameworks */ = {isa = PBXBuildFile; productRef = BDF3443E9DA8241421851D45 /* NetSentryCore */; };
 		F7C4BFDDDE21162A431153AA /* DecodeStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636A6DBC0F16B135B9C0AA85 /* DecodeStage.swift */; };
 		FA22803F758145509DB171F5 /* AISettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0833EDEC6F58E8F48B9569 /* AISettings.swift */; };
+		FA65F0D1CDAF17FF18C14E37 /* AppIcon.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 031F9545A071488ACEF35C31 /* AppIcon.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -106,6 +108,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		031F9545A071488ACEF35C31 /* AppIcon.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = AppIcon.xcassets; sourceTree = "<group>"; };
 		117A618CB108EBEDC1293FB6 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		1849D32E33E283C35F57E2F7 /* AITools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AITools.swift; sourceTree = "<group>"; };
 		1902A5F31FD5D8EFE4AAA872 /* CollectorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectorManager.swift; sourceTree = "<group>"; };
@@ -199,6 +202,7 @@
 				86B7B1386866223308CE679F /* NetSentry */,
 				DCCC20645C9AD7E9C886ABBD /* NetSentryCollector */,
 				2102F94A7850137EB893740D /* NetSentryUITests */,
+				7C58DF6FC09CF39BB2D50EFE /* Shared */,
 			);
 			path = Apps;
 			sourceTree = "<group>";
@@ -276,6 +280,14 @@
 				192A70BCB94D48153EFF3811 /* NetworkListener.swift */,
 			);
 			path = Listeners;
+			sourceTree = "<group>";
+		};
+		7C58DF6FC09CF39BB2D50EFE /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				031F9545A071488ACEF35C31 /* AppIcon.xcassets */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 		86B7B1386866223308CE679F /* NetSentry */ = {
@@ -375,6 +387,7 @@
 			buildConfigurationList = 0E836CF6B3EF5C107DFD3D94 /* Build configuration list for PBXNativeTarget "NetSentryCollector" */;
 			buildPhases = (
 				BE190C71D286B34B6F6473E8 /* Sources */,
+				F4FE84B2D0ACD61A38FC4A08 /* Resources */,
 				09A1E02D284B3FC0C9C5BA16 /* Frameworks */,
 			);
 			buildRules = (
@@ -400,6 +413,7 @@
 			buildConfigurationList = 26CF8BE1FCFB0D63BAB5BC12 /* Build configuration list for PBXNativeTarget "NetSentry" */;
 			buildPhases = (
 				305CA51DCB875B8FE69869F6 /* Sources */,
+				D60E5A291E74DAAACB3CC9FE /* Resources */,
 				A807FC9422294C1D3A833E59 /* CopyFiles */,
 				88A7775DE1EA47ED670F20CB /* Frameworks */,
 				A9818499A707E1BF7FB04A53 /* Embed Dependencies */,
@@ -471,6 +485,25 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D60E5A291E74DAAACB3CC9FE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FA65F0D1CDAF17FF18C14E37 /* AppIcon.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F4FE84B2D0ACD61A38FC4A08 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				42984E3548BAA244F937CA0C /* AppIcon.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		01BFDAEA9D1589F03F929E88 /* Sources */ = {
@@ -571,6 +604,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -603,7 +637,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
@@ -620,7 +654,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.2.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				NETSENTRY_APP_BUNDLE_ID = com.netsentry.app;
@@ -717,6 +751,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -749,7 +784,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
@@ -772,7 +807,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.2.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				NETSENTRY_APP_BUNDLE_ID = com.netsentry.app.debug;
