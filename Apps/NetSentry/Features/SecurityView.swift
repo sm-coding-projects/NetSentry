@@ -55,15 +55,15 @@ struct SecurityView: View {
                     TableColumn("Last") { a in Text(Format.relative(a.lastOccurrence)) }.width(110)
                 }
                 .accessibilityLabel("Alerts table").frame(maxWidth: .infinity, maxHeight: .infinity)
-                if let error { Text(error).font(.caption).foregroundStyle(.red).padding(6) }
+                if let error { Text(error).scaledFont(.caption).foregroundStyle(.red).padding(6) }
             }
             .frame(minWidth: 320).frame(height: geo.size.height)
-            Group {
-                if let id = selection, let a = alerts.first(where: { $0.id == id }) { AlertDetailView(alert: a, note: $note, onChange: { updated in replace(updated) }, onError: { error = $0 }) }
-                else { ContentUnavailableView("Select an alert", systemImage: "shield.lefthalf.filled", description: Text("Evidence, the reason it triggered, the baseline used, and the supporting flows and events.")) }
+            if let id = selection, let a = alerts.first(where: { $0.id == id }) {
+                DetailPane(onClose: { selection = nil }) { AlertDetailView(alert: a, note: $note, onChange: { updated in replace(updated) }, onError: { error = $0 }) }
+                    .frame(minWidth: 300).frame(height: geo.size.height)
             }
-            .frame(minWidth: 300).frame(height: geo.size.height)
         }
+        .onExitCommand { selection = nil }
         .frame(width: geo.size.width, height: geo.size.height)
         .task { await load() }
         .onChange(of: model.lastAlertEvent) { _, _ in Task { await load() } }
@@ -126,23 +126,23 @@ struct AlertDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                HStack { StatusBadge(text: alert.severity.label, kind: alert.severity >= .high ? .error : (alert.severity == .medium ? .warning : .neutral)); Text(alert.title).font(.headline); Spacer() }
-                Text(alert.summary).font(.callout)
+                HStack { StatusBadge(text: alert.severity.label, kind: alert.severity >= .high ? .error : (alert.severity == .medium ? .warning : .neutral)); Text(alert.title).scaledFont(.headline); Spacer() }
+                Text(alert.summary).scaledFont(.callout)
                 LabeledContent("Rule", value: "\(alert.ruleName) v\(alert.ruleVersion)")
                 LabeledContent("Detected", value: Format.time(alert.firstOccurrence) + (alert.occurrenceCount > 1 ? " · \(alert.occurrenceCount) occurrences, last \(Format.time(alert.lastOccurrence))" : ""))
                 LabeledContent("Entity", value: "\(alert.entity.kind): \(alert.entity.label)")
                 if let c = alert.clientID { LabeledContent("Client", value: "#\(c)") }
-                GroupBox("Why it triggered") { Text(LocalizedStringKey(alert.explanation)).font(.callout).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }
+                GroupBox("Why it triggered") { Text(LocalizedStringKey(alert.explanation)).scaledFont(.callout).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }
                 if let b = alert.baseline {
-                    GroupBox("Baseline / threshold") { Text("\(b.kind): \(String(format: "%g", b.value)) \(b.unit) over \(b.period) (\(b.samples) samples)").font(.callout).frame(maxWidth: .infinity, alignment: .leading) }
+                    GroupBox("Baseline / threshold") { Text("\(b.kind): \(String(format: "%g", b.value)) \(b.unit) over \(b.period) (\(b.samples) samples)").scaledFont(.callout).frame(maxWidth: .infinity, alignment: .leading) }
                 }
                 GroupBox("Evidence") {
                     Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 3) {
-                        ForEach(alert.evidence.sorted(by: { $0.key < $1.key }), id: \.key) { k, v in GridRow { Text(k).font(.caption).foregroundStyle(.secondary); Text(v).font(.caption.monospaced()).textSelection(.enabled) } }
+                        ForEach(alert.evidence.sorted(by: { $0.key < $1.key }), id: \.key) { k, v in GridRow { Text(k).scaledFont(.caption).foregroundStyle(.secondary); Text(v).scaledFont(.caption) { $0.monospaced() }.textSelection(.enabled) } }
                     }.frame(maxWidth: .infinity, alignment: .leading)
-                    Text("\(alert.flowIDs.count) flows · \(alert.eventIDs.count) events referenced\(alert.flowIDs.isEmpty && alert.eventIDs.isEmpty ? "" : " (open the investigation to see them)")").font(.caption).foregroundStyle(.secondary)
+                    Text("\(alert.flowIDs.count) flows · \(alert.eventIDs.count) events referenced\(alert.flowIDs.isEmpty && alert.eventIDs.isEmpty ? "" : " (open the investigation to see them)")").scaledFont(.caption).foregroundStyle(.secondary)
                 }
-                GroupBox("Recommended investigation") { VStack(alignment: .leading, spacing: 4) { ForEach(alert.steps, id: \.self) { Text("• \($0)").font(.callout) } }.frame(maxWidth: .infinity, alignment: .leading) }
+                GroupBox("Recommended investigation") { VStack(alignment: .leading, spacing: 4) { ForEach(alert.steps, id: \.self) { Text("• \($0)").scaledFont(.callout) } }.frame(maxWidth: .infinity, alignment: .leading) }
                 HStack {
                     Button("Investigate") { model.openInvestigation(.alert(id: alert.id, title: alert.title, time: alert.firstOccurrence, clientID: alert.clientID, addresses: [alert.entity.kind == "ip" ? alert.entity.id : alert.evidence["destination"] ?? "", alert.evidence["source"] ?? ""].filter { !$0.isEmpty }, flowIDs: alert.flowIDs, eventIDs: alert.eventIDs)) }.buttonStyle(.borderedProminent)
                     if alert.state == .open { Button("Acknowledge") { set(.acknowledged) } }
@@ -164,7 +164,7 @@ struct AlertDetailView: View {
                 }
                 GroupBox("Notes") {
                     VStack(alignment: .leading, spacing: 6) {
-                        ForEach(alert.notes) { n in Text("\(Format.time(n.createdAt)): \(n.text)").font(.caption) }
+                        ForEach(alert.notes) { n in Text("\(Format.time(n.createdAt)): \(n.text)").scaledFont(.caption) }
                         HStack { TextField("Add a note", text: $note).textFieldStyle(.roundedBorder); Button("Add") { addNote() }.disabled(note.isEmpty) }
                     }.frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -190,28 +190,28 @@ struct RulesSheet: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            Text("Detection rules").font(.headline)
-            Text("Every rule is deterministic and explains its findings. Changes apply immediately to the running collector.").font(.caption).foregroundStyle(.secondary)
+            Text("Detection rules").scaledFont(.headline)
+            Text("Every rule is deterministic and explains its findings. Changes apply immediately to the running collector.").scaledFont(.caption).foregroundStyle(.secondary)
             List(rules, id: \.["name"]) { r in
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
-                        Toggle(isOn: Binding(get: { r["enabled"] == "true" }, set: { on in Task { try? await security.setRule(r["name"] ?? "", enabled: on, params: [:]); await load() } })) { Text(r["title"] ?? "").font(.callout.bold()) }
-                        Spacer(); Text("v\(r["version"] ?? "")  · default \(AlertSeverity(rawValue: UInt8(r["severity"] ?? "") ?? 0)?.label ?? "")").font(.caption).foregroundStyle(.secondary)
+                        Toggle(isOn: Binding(get: { r["enabled"] == "true" }, set: { on in Task { try? await security.setRule(r["name"] ?? "", enabled: on, params: [:]); await load() } })) { Text(r["title"] ?? "").scaledFont(.callout) { $0.bold() } }
+                        Spacer(); Text("v\(r["version"] ?? "")  · default \(AlertSeverity(rawValue: UInt8(r["severity"] ?? "") ?? 0)?.label ?? "")").scaledFont(.caption).foregroundStyle(.secondary)
                     }
-                    Text(r["description"] ?? "").font(.caption).foregroundStyle(.secondary)
+                    Text(r["description"] ?? "").scaledFont(.caption).foregroundStyle(.secondary)
                     ForEach(params(r), id: \.["key"]) { p in
                         HStack {
-                            Text(p["label"] ?? "").frame(width: 170, alignment: .leading).font(.caption)
+                            Text(p["label"] ?? "").frame(width: 170, alignment: .leading).scaledFont(.caption)
                             TextField("", value: Binding(get: { edits[r["name"] ?? ""]?[p["key"] ?? ""] ?? Double(p["value"] ?? "") ?? 0 }, set: { edits[r["name"] ?? "", default: [:]][p["key"] ?? ""] = $0 }), format: .number).frame(width: 110)
-                            Text(p["unit"] ?? "").font(.caption).foregroundStyle(.secondary).frame(width: 110, alignment: .leading)
-                            Text(p["help"] ?? "").font(.caption2).foregroundStyle(.tertiary).lineLimit(2)
+                            Text(p["unit"] ?? "").scaledFont(.caption).foregroundStyle(.secondary).frame(width: 110, alignment: .leading)
+                            Text(p["help"] ?? "").scaledFont(.caption2).foregroundStyle(.tertiary).lineLimit(2)
                         }
                     }
                     if let e = edits[r["name"] ?? ""], !e.isEmpty { Button("Apply") { Task { try? await security.setRule(r["name"] ?? "", enabled: nil, params: e); edits[r["name"] ?? ""] = nil; await load() } }.controlSize(.small) }
                 }
                 .padding(.vertical, 4)
             }
-            if let error { Text(error).foregroundStyle(.red).font(.caption) }
+            if let error { Text(error).foregroundStyle(.red).scaledFont(.caption) }
             HStack { Spacer(); Button("Done") { dismiss() }.keyboardShortcut(.defaultAction) }
         }
         .padding(16)

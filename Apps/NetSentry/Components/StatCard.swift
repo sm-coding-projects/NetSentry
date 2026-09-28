@@ -11,10 +11,10 @@ struct StatCard: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
                 if let systemImage { Image(systemName: systemImage).foregroundStyle(tint).accessibilityHidden(true) }
-                Text(title).font(.caption).foregroundStyle(.secondary)
+                Text(title).scaledFont(.caption).foregroundStyle(.secondary)
             }
-            Text(value).font(.title2.monospacedDigit().weight(.semibold)).lineLimit(1).minimumScaleFactor(0.6)
-            if let detail { Text(detail).font(.caption2).foregroundStyle(.tertiary).lineLimit(2) }
+            Text(value).scaledFont(.title2) { $0.monospacedDigit().weight(.semibold) }.lineLimit(1).minimumScaleFactor(0.6)
+            if let detail { Text(detail).scaledFont(.caption2).foregroundStyle(.tertiary).lineLimit(2) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
@@ -30,7 +30,7 @@ struct StatusBadge: View {
     let kind: Kind
     var body: some View {
         Text(text)
-            .font(.caption.weight(.medium))
+            .scaledFont(.caption) { $0.weight(.medium) }
             .padding(.horizontal, 8).padding(.vertical, 3)
             .background(color.opacity(0.18), in: Capsule())
             .foregroundStyle(color)

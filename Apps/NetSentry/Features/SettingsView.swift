@@ -30,7 +30,7 @@ struct SettingsView: View {
                 Button("Open Login Items…") { model.manager.openLoginItemsSettings() }
                 Spacer()
                 Text("The collector keeps running when this window is closed and restarts after a crash or login.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .scaledFont(.caption).foregroundStyle(.secondary)
             }
         }
         SwiftUI.Section("Listeners") {
@@ -51,12 +51,12 @@ struct SettingsView: View {
                         }.labelsHidden()
                     }
                     if let problem = ListenerPortCheck.problem(for: l.wrappedValue, in: d.wrappedValue.listeners) {
-                        Text(problem).font(.caption).foregroundStyle(.red)
+                        Text(problem).scaledFont(.caption).foregroundStyle(.red)
                     }
                 }
             }
             Text("Type a port (1024–65535) and click Apply; only the changed listener restarts. Then point the UniFi gateway's NetFlow (IPFIX) and remote syslog at this Mac's address on these ports.")
-                .font(.caption).foregroundStyle(.secondary)
+                .scaledFont(.caption).foregroundStyle(.secondary)
         }
         SwiftUI.Section("Storage") {
             LabeledContent("Location") {
@@ -73,7 +73,7 @@ struct SettingsView: View {
                 Text("Custom (GB)")
                 TextField("GB", value: Binding(get: { Double(d.wrappedValue.budgetBytes) / 1e9 }, set: { d.wrappedValue.budgetBytes = StorageBudget.clamp(Int64($0 * 1e9)) }),
                           format: .number.precision(.fractionLength(0...1))).frame(width: 90)
-                Text("5–500 GB. Treated as a ceiling; nothing is preallocated. Shrinking previews deletions first (Phase 3).").font(.caption).foregroundStyle(.secondary)
+                Text("5–500 GB. Treated as a ceiling; nothing is preallocated. Shrinking previews deletions first (Phase 3).").scaledFont(.caption).foregroundStyle(.secondary)
             }
         }
         AISettingsSection()
@@ -98,7 +98,7 @@ struct SettingsView: View {
                 Button("Import .mmdb…") { importMMDB { d.wrappedValue.geoIP.asnDatabasePath = $0 } }
                 if d.wrappedValue.geoIP.asnDatabasePath != nil { Button("Remove") { d.wrappedValue.geoIP.asnDatabasePath = nil } }
             }
-            Text("MaxMind GeoLite2 City/ASN files (or any MMDB) are read locally; nothing is looked up online. Files are copied into the application support folder.").font(.caption).foregroundStyle(.secondary)
+            Text("MaxMind GeoLite2 City/ASN files (or any MMDB) are read locally; nothing is looked up online. Files are copied into the application support folder.").scaledFont(.caption).foregroundStyle(.secondary)
         }
         SwiftUI.Section("Expected countries and networks") {
             ExpectationsEditor()
@@ -112,10 +112,10 @@ struct SettingsView: View {
             HStack {
                 Button("Apply") { Task { await applyWithPreview(d.wrappedValue) } }.keyboardShortcut(.defaultAction)
                 Button("Revert") { draft = model.configuration; errors = [] }
-                if saved { Text("Applied").foregroundStyle(.green).font(.caption) }
+                if saved { Text("Applied").foregroundStyle(.green).scaledFont(.caption) }
                 Spacer()
             }
-            ForEach(errors, id: \.self) { Text($0).foregroundStyle(.red).font(.caption) }
+            ForEach(errors, id: \.self) { Text($0).foregroundStyle(.red).scaledFont(.caption) }
         }
         .sheet(item: Binding(get: { preview.map { PreviewBox(reply: $0) } }, set: { if $0 == nil { preview = nil } })) { box in
             ShrinkPreviewSheet(reply: box.reply,
@@ -177,21 +177,21 @@ struct ShrinkPreviewSheet: View {
     let cancel: () -> Void
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Reducing the budget will delete data", systemImage: reply.removesRecentData ? "exclamationmark.triangle.fill" : "info.circle").font(.headline)
+            Label("Reducing the budget will delete data", systemImage: reply.removesRecentData ? "exclamationmark.triangle.fill" : "info.circle").scaledFont(.headline)
             Text("New budget \(Format.bytes(reply.budgetBytes)); usage \(Format.bytes(reply.usageBefore)) → about \(Format.bytes(reply.usageAfter)). Rollups, alerts, annotations and daily summaries are kept.")
-                .font(.callout)
+                .scaledFont(.callout)
             ForEach(reply.steps, id: \.stage) { st in
                 HStack(alignment: .top) {
-                    Text("Stage \(st.stage)").font(.caption.bold()).frame(width: 60, alignment: .leading)
+                    Text("Stage \(st.stage)").scaledFont(.caption) { $0.bold() }.frame(width: 60, alignment: .leading)
                     VStack(alignment: .leading) {
-                        Text(st.description).font(.callout)
+                        Text(st.description).scaledFont(.callout)
                         Text("frees \(Format.bytes(st.bytesFreed))\(st.segments > 0 ? " · \(st.segments) segments" : "")\(st.oldestSurvivingFlow.map { " · oldest flows kept from \(Format.time($0))" } ?? "")")
-                            .font(.caption).foregroundStyle(.secondary)
+                            .scaledFont(.caption).foregroundStyle(.secondary)
                     }
                 }
             }
             if reply.removesRecentData {
-                Text("Data from the last 24 hours would be removed.").font(.callout).foregroundStyle(.red)
+                Text("Data from the last 24 hours would be removed.").scaledFont(.callout).foregroundStyle(.red)
             }
             HStack { Spacer(); Button("Cancel", action: cancel).keyboardShortcut(.cancelAction); Button("Delete and apply", role: .destructive, action: confirm) }
         }
@@ -221,7 +221,7 @@ struct AISettingsSection: View {
             TextField("Base URL", text: $settings.baseURL)
                 .onChange(of: settings.baseURL) { _, _ in markDirty() }
             if settings.normalizedBaseURL == nil, !settings.baseURL.isEmpty {
-                Text("Enter a valid http(s) URL, e.g. \(settings.provider.defaultBaseURL)").font(.caption).foregroundStyle(.red)
+                Text("Enter a valid http(s) URL, e.g. \(settings.provider.defaultBaseURL)").scaledFont(.caption).foregroundStyle(.red)
             }
 
             SecureField("API key", text: $settings.apiKey)
@@ -241,7 +241,7 @@ struct AISettingsSection: View {
                 }
                 .disabled(fetching || settings.apiKey.isEmpty || settings.normalizedBaseURL == nil)
             }
-            if let fetchError { Text(fetchError).font(.caption).foregroundStyle(.red) }
+            if let fetchError { Text(fetchError).scaledFont(.caption).foregroundStyle(.red) }
 
             VStack(alignment: .leading) {
                 HStack {
@@ -250,15 +250,15 @@ struct AISettingsSection: View {
                     Text(settings.temperature.formatted(.number.precision(.fractionLength(1)))).monospacedDigit().frame(width: 32)
                 }
                 Text("Lower is more focused and factual; higher is more exploratory. 0.2 is a good default for troubleshooting.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .scaledFont(.caption).foregroundStyle(.secondary)
             }
 
             HStack {
                 Button("Save") { save() }.keyboardShortcut(.defaultAction)
-                if saved { Text("Saved").foregroundStyle(.green).font(.caption) }
+                if saved { Text("Saved").foregroundStyle(.green).scaledFont(.caption) }
                 Spacer()
                 Text("The API key is stored in your macOS Keychain. Requests go directly to the URL above.")
-                    .font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.trailing)
+                    .scaledFont(.caption).foregroundStyle(.secondary).multilineTextAlignment(.trailing)
             }
         }
     }
@@ -305,23 +305,23 @@ struct ExpectationsEditor: View {
             }
             ForEach(expectations, id: \.["id"]) { e in
                 HStack {
-                    Text("\(e["scopeType"] == "global" ? "Everyone" : "Client #\(e["scopeValue"] ?? "")") · \(e["kind"] ?? "") \(e["value"] ?? "")").font(.callout)
-                    if let n = e["note"], !n.isEmpty { Text(n).font(.caption).foregroundStyle(.secondary) }
+                    Text("\(e["scopeType"] == "global" ? "Everyone" : "Client #\(e["scopeValue"] ?? "")") · \(e["kind"] ?? "") \(e["value"] ?? "")").scaledFont(.callout)
+                    if let n = e["note"], !n.isEmpty { Text(n).scaledFont(.caption).foregroundStyle(.secondary) }
                     Spacer()
                     Button("Remove") { Task { try? await security.removeExpectation(Int64(e["id"] ?? "") ?? 0); await load() } }.controlSize(.small)
                 }
             }
             if !suppressions.isEmpty {
-                Text("Suppressions").font(.caption.bold()).padding(.top, 4)
+                Text("Suppressions").scaledFont(.caption) { $0.bold() }.padding(.top, 4)
                 ForEach(suppressions) { s in
                     HStack {
-                        Text(describe(s)).font(.callout)
+                        Text(describe(s)).scaledFont(.callout)
                         Spacer()
                         Button("Remove") { Task { _ = try? await security.removeSuppression(s.id); await load() } }.controlSize(.small)
                     }
                 }
             }
-            if let error { Text(error).font(.caption).foregroundStyle(.red) }
+            if let error { Text(error).scaledFont(.caption).foregroundStyle(.red) }
         }
         .task { await load() }
     }

@@ -41,7 +41,7 @@ struct AskAIView: View {
                 .buttonStyle(.link)
             Spacer()
         }
-        .font(.callout)
+        .scaledFont(.callout)
         .padding(.horizontal, 16).padding(.vertical, 10)
         .background(.orange.opacity(0.12))
     }
@@ -84,8 +84,8 @@ struct AskAIView: View {
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 6) {
-                Image(systemName: "sparkles").font(.largeTitle).foregroundStyle(.tint)
-                Text("Ask about your network").font(.title2.bold())
+                Image(systemName: "sparkles").scaledFont(.largeTitle).foregroundStyle(.tint)
+                Text("Ask about your network").scaledFont(.title2) { $0.bold() }
                 Text("I can read the flows and events \(Branding.productName) is collecting and investigate on your behalf. Ask in plain language.")
                     .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
@@ -93,7 +93,7 @@ struct AskAIView: View {
             ForEach(suggestions, id: \.self) { s in
                 Button { submit(s) } label: {
                     HStack {
-                        Image(systemName: "arrow.up.right").font(.caption).foregroundStyle(.secondary)
+                        Image(systemName: "arrow.up.right").scaledFont(.caption).foregroundStyle(.secondary)
                         Text(s)
                         Spacer()
                     }
@@ -121,7 +121,7 @@ struct AskAIView: View {
                 .onSubmit { submit(input) }
                 .disabled(ai.isResponding)
             Button { submit(input) } label: {
-                Image(systemName: "arrow.up.circle.fill").font(.title)
+                Image(systemName: "arrow.up.circle.fill").scaledFont(.title)
             }
             .buttonStyle(.plain)
             .foregroundStyle(canSend ? Color.accentColor : Color.secondary)
@@ -197,9 +197,9 @@ private struct ReasoningDisclosure: View {
                         Image(systemName: "brain")
                         Text("Reasoning")
                     }
-                    Image(systemName: expanded ? "chevron.down" : "chevron.right").font(.caption2)
+                    Image(systemName: expanded ? "chevron.down" : "chevron.right").scaledFont(.caption2)
                 }
-                .font(.caption.weight(.medium))
+                .scaledFont(.caption) { $0.weight(.medium) }
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 8).padding(.vertical, 4)
                 .background(.quaternary.opacity(0.5), in: Capsule())
@@ -208,7 +208,7 @@ private struct ReasoningDisclosure: View {
 
             if expanded {
                 Text(text)
-                    .font(.callout)
+                    .scaledFont(.callout)
                     .foregroundStyle(.secondary)
                     .textSelection(.enabled)
                     .fixedSize(horizontal: false, vertical: true)
@@ -224,7 +224,7 @@ private struct ActivityRow: View {
     var body: some View {
         HStack(spacing: 10) {
             ProgressView().controlSize(.small)
-            Text(text).foregroundStyle(.secondary).font(.callout)
+            Text(text).foregroundStyle(.secondary).scaledFont(.callout)
         }
         .padding(.leading, 32)
     }

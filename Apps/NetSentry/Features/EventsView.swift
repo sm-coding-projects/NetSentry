@@ -40,7 +40,7 @@ struct EventsView: View {
                 TextField("Save as…", text: $saveName).textFieldStyle(.roundedBorder).frame(width: 120).onSubmit {
                     guard !saveName.isEmpty else { return }; model.saveSearch(name: saveName, view: "events", query: filter()); saveName = ""
                 }
-                if !counts.isEmpty { Text(counts.prefix(4).map { "\(EventType(rawValue: UInt8($0.key) ?? 0)?.label ?? $0.key) \($0.count)" }.joined(separator: " · ")).font(.caption).foregroundStyle(.secondary) }
+                if !counts.isEmpty { Text(counts.prefix(4).map { "\(EventType(rawValue: UInt8($0.key) ?? 0)?.label ?? $0.key) \($0.count)" }.joined(separator: " · ")).scaledFont(.caption).foregroundStyle(.secondary) }
             }
             .padding(10)
             }
@@ -59,17 +59,16 @@ struct EventsView: View {
                 }
                 .accessibilityLabel("Events table").frame(minWidth: 320).frame(height: geo.size.height)
                 if let id = selection, let e = rows.first(where: { $0.id == id }) {
-                    ScrollView { LiveInspector(row: LiveRow(id: 0, time: e.effectiveTime, flow: nil, event: e)) }.frame(minWidth: 300, idealWidth: 380).frame(height: geo.size.height)
-                } else {
-                    ContentUnavailableView("Select an event", systemImage: "sidebar.right", description: Text("Structured fields, parser and version, and the raw message.")).frame(minWidth: 300, idealWidth: 380).frame(height: geo.size.height)
+                    DetailPane(onClose: { selection = nil }) { ScrollView { LiveInspector(row: LiveRow(id: 0, time: e.effectiveTime, flow: nil, event: e)) } }.frame(minWidth: 300, idealWidth: 380).frame(height: geo.size.height)
                 }
             }
+            .onExitCommand { selection = nil }
             .frame(width: geo.size.width, height: geo.size.height)
             }
             HStack {
                 if loading { ProgressView().controlSize(.small) }
-                Text(page.map { "\(rows.count) events · \($0.segmentsScanned) segments · \(Format.duration($0.elapsed))" } ?? (analytics.engine == nil ? "Store not open yet" : "")).font(.caption).foregroundStyle(.secondary)
-                if let error { Text(error).font(.caption).foregroundStyle(.red) }
+                Text(page.map { "\(rows.count) events · \($0.segmentsScanned) segments · \(Format.duration($0.elapsed))" } ?? (analytics.engine == nil ? "Store not open yet" : "")).scaledFont(.caption).foregroundStyle(.secondary)
+                if let error { Text(error).scaledFont(.caption).foregroundStyle(.red) }
                 Spacer()
                 if page?.nextCursor != nil { Button("Load more") { Task { await load(reset: false) } }.disabled(loading) }
                 Button("Export…") { showExport = true }.disabled(rows.isEmpty).keyboardShortcut("e", modifiers: .command)

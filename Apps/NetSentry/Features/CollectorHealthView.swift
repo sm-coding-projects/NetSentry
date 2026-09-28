@@ -35,7 +35,7 @@ struct CollectorHealthView: View {
                 GridRow { Text("Login item").foregroundStyle(.secondary); Text(model.agentStatus) }
                 GridRow { Text("Snapshot").foregroundStyle(.secondary); Text(Format.time(h.generatedAt)) }
             }
-            .font(.callout).frame(maxWidth: .infinity, alignment: .leading)
+            .scaledFont(.callout).frame(maxWidth: .infinity, alignment: .leading)
             Divider().padding(.vertical, 4)
             HStack {
                 Button(exporting ? "Exporting…" : "Export diagnostics…") { Task { await exportDiagnostics() } }.disabled(exporting)
@@ -44,8 +44,8 @@ struct CollectorHealthView: View {
                 Spacer()
             }
             Text("A zip with health, configuration (secrets removed), storage status, verification, gaps, detection statistics, system facts and two hours of NetSentry log lines. Review it before sharing; addresses are not redacted.")
-                .font(.caption).foregroundStyle(.secondary)
-            if let exportMessage { Text(exportMessage).font(.caption).textSelection(.enabled) }
+                .scaledFont(.caption).foregroundStyle(.secondary)
+            if let exportMessage { Text(exportMessage).scaledFont(.caption).textSelection(.enabled) }
         }
     }
 
@@ -83,7 +83,7 @@ struct CollectorHealthView: View {
         GroupBox("Exporters and observation domains") {
             if h.exporters.isEmpty {
                 Text("No exporter identified yet. IPFIX exporters are registered once templates are decoded (Phase 2).")
-                    .font(.callout).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
+                    .scaledFont(.callout).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 Table(h.exporters) {
                     TableColumn("Kind") { Text($0.kind.label) }.width(60)
@@ -128,7 +128,7 @@ struct CollectorHealthView: View {
                         Text(q.name).frame(width: 90, alignment: .leading)
                         ProgressView(value: q.utilization).frame(maxWidth: 240)
                         Text("\(q.depth) / \(q.capacity)").monospacedDigit().frame(width: 110, alignment: .leading)
-                        Text("high \(q.highWatermark) · dropped \(Format.count(q.dropped))").font(.caption).foregroundStyle(.secondary)
+                        Text("high \(q.highWatermark) · dropped \(Format.count(q.dropped))").scaledFont(.caption).foregroundStyle(.secondary)
                         Spacer()
                     }
                     .accessibilityElement(children: .combine)
@@ -143,15 +143,15 @@ struct CollectorHealthView: View {
         GroupBox("Open collection gaps") {
             if h.openGaps.isEmpty {
                 Text("None. Gaps are recorded whenever collection is known to be incomplete and are never shown as “no activity”.")
-                    .font(.callout).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
+                    .scaledFont(.callout).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 ForEach(h.openGaps) { g in
                     HStack {
                         Image(systemName: "rectangle.dashed").foregroundStyle(.orange).accessibilityLabel("Gap")
-                        Text(g.kind.label).font(.callout.weight(.medium))
-                        Text(g.reason).font(.callout).foregroundStyle(.secondary)
+                        Text(g.kind.label).scaledFont(.callout) { $0.weight(.medium) }
+                        Text(g.reason).scaledFont(.callout).foregroundStyle(.secondary)
                         Spacer()
-                        Text("since \(Format.relative(g.start))").font(.caption).foregroundStyle(.tertiary)
+                        Text("since \(Format.relative(g.start))").scaledFont(.caption).foregroundStyle(.tertiary)
                     }
                 }
             }

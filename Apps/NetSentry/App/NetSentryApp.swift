@@ -11,6 +11,7 @@ struct NetSentryApp: App {
     @State private var analytics: AnalyticsService
     @State private var aiSettings: AISettings
     @State private var ai: AIService
+    @AppStorage(TextScale.defaultsKey) private var textScale = 1.0
 
     init() {
         #if DEBUG
@@ -207,6 +208,7 @@ struct NetSentryApp: App {
                 .environment(analytics)
                 .environment(aiSettings)
                 .environment(ai)
+                .appTextScale(textScale)
                 .frame(minWidth: 1000, minHeight: 640)
                 .task {
                     #if DEBUG
@@ -219,12 +221,14 @@ struct NetSentryApp: App {
         .commands {
             SidebarCommands()
             CommandGroup(replacing: .newItem) {}
+            TextSizeCommands()
         }
         Settings {
             SettingsView()
                 .environment(model)
                 .environment(aiSettings)
                 .environment(ai)
+                .appTextScale(textScale)
                 .frame(width: 620)
         }
     }

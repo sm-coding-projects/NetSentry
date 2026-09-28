@@ -42,14 +42,14 @@ struct StorageView: View {
     private func budgetHeader(_ s: StorageSummary) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text("Storage budget").font(.headline)
+                Text("Storage budget").scaledFont(.headline)
                 Spacer()
-                Text("\(Format.bytes(s.usedBytes)) of \(Format.bytes(s.budgetBytes))").font(.callout.monospacedDigit()).foregroundStyle(.secondary)
+                Text("\(Format.bytes(s.usedBytes)) of \(Format.bytes(s.budgetBytes))").scaledFont(.callout) { $0.monospacedDigit() }.foregroundStyle(.secondary)
             }
             ProgressView(value: min(1, Double(s.usedBytes) / Double(max(s.budgetBytes, 1))))
                 .tint(s.usedBytes > s.budgetBytes ? .red : (Double(s.usedBytes) / Double(max(s.budgetBytes, 1)) > 0.9 ? .orange : .accentColor))
             Text("The budget is a ceiling, not a preallocation. Retention removes captures, raw syslog copies and the oldest detailed segments in that order; rollups, alerts and annotations are kept. Location: \(s.root)")
-                .font(.caption).foregroundStyle(.secondary)
+                .scaledFont(.caption).foregroundStyle(.secondary)
         }
     }
 
@@ -67,11 +67,11 @@ struct StorageView: View {
                 .chartLegend(.hidden)
                 .frame(height: CGFloat(40 + rows.count * 26))
                 ForEach(rows, id: \.0) { k, v in
-                    HStack { Text(labels[k] ?? k); Spacer(); Text(Format.bytes(v)).monospacedDigit() }.font(.callout)
+                    HStack { Text(labels[k] ?? k); Spacer(); Text(Format.bytes(v)).monospacedDigit() }.scaledFont(.callout)
                 }
                 let alloc = model.configuration.allocation
                 Text("Allocation targets: flows \(Int(alloc.flows * 100)) %, events \(Int(alloc.events * 100)) %, raw \(Int(alloc.raw * 100)) %, metadata \(Int(alloc.metadata * 100)) %, reserve \(Int(alloc.reserve * 100)) %.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .scaledFont(.caption).foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -85,17 +85,17 @@ struct StorageView: View {
                     Button("Flush now") { Task { await run { try await model.client.request(StorageFlushRequest()) } } }.disabled(running)
                     Button("Run retention now") { Task { await run { try await model.client.request(RetentionRunRequest()) } } }.disabled(running)
                     Button("Back up manifest…") { Task { await backup() } }.disabled(running)
-                    if let message { Text(message).font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle) }
+                    if let message { Text(message).scaledFont(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle) }
                     Button(verifying ? "Verifying…" : "Verify all segments") { Task { await verify() } }.disabled(verifying)
                     Spacer()
                 }
                 if let r = verifyResult {
                     Text(r.isEmpty ? "All segments verified: files present, checksums and row counts match." : r.joined(separator: "\n"))
-                        .font(.caption).foregroundStyle(r.isEmpty ? .green : .orange)
+                        .scaledFont(.caption).foregroundStyle(r.isEmpty ? .green : .orange)
                 }
-                if let error { Text(error).font(.caption).foregroundStyle(.red) }
+                if let error { Text(error).scaledFont(.caption).foregroundStyle(.red) }
                 Text("Segments are immutable Parquet files finalized atomically; interrupted writes are removed at startup and orphaned files are quarantined under tmp/.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .scaledFont(.caption).foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }

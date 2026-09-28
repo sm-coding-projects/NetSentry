@@ -21,7 +21,7 @@ struct InvestigationView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 10) {
-                Text(model.investigationAnchor?.label ?? "No anchor").font(.headline).lineLimit(1)
+                Text(model.investigationAnchor?.label ?? "No anchor").scaledFont(.headline).lineLimit(1)
                 Spacer()
                 TextField("Investigate address…", text: $addressText).textFieldStyle(.roundedBorder).frame(width: 180).onSubmit { if let ip = IPAddress(addressText) { model.openInvestigation(.address(ip)) } }
                 Picker("Window", selection: $window) { Text("±5 min").tag(5.0); Text("±15 min").tag(15.0); Text("±1 h").tag(60.0); Text("±6 h").tag(360.0); Text("±24 h").tag(1440.0) }.frame(width: 110).labelsHidden()
@@ -39,16 +39,18 @@ struct InvestigationView: View {
                         TableColumn("Time") { e in Text(e.time.date.formatted(date: .omitted, time: .standard)).monospacedDigit().fontWeight(e.isAnchor ? .bold : .regular) }.width(90)
                         TableColumn("Kind") { e in StatusBadge(text: e.kind.rawValue, kind: badge(e.kind)) }.width(90)
                         TableColumn("What") { e in Text(e.title).lineLimit(1).fontWeight(e.isAnchor ? .bold : .regular) }
-                        TableColumn("Relation") { e in Text(e.relations.joined(separator: " · ")).font(.caption).foregroundStyle(.secondary) }.width(220)
+                        TableColumn("Relation") { e in Text(e.relations.joined(separator: " · ")).scaledFont(.caption).foregroundStyle(.secondary) }.width(220)
                     }
                     .accessibilityLabel("Timeline table").frame(minWidth: 560).frame(height: geo.size.height)
-                    if let id = selection, let e = inv.entries.first(where: { $0.id == id }) { entryDetail(e).frame(minWidth: 320, idealWidth: 380).frame(height: geo.size.height) }
-                    else { ContentUnavailableView("Select an entry", systemImage: "sidebar.right", description: Text("Full record. Pivot from any address or client into a new investigation.")).frame(minWidth: 320, idealWidth: 380).frame(height: geo.size.height) }
+                    if let id = selection, let e = inv.entries.first(where: { $0.id == id }) {
+                        DetailPane(onClose: { selection = nil }) { entryDetail(e) }.frame(minWidth: 320, idealWidth: 380).frame(height: geo.size.height)
+                    }
                 }
+                .onExitCommand { selection = nil }
                 .frame(width: geo.size.width, height: geo.size.height)
                 }
                 HStack {
-                    Text("\(inv.entries.count) entries · \(Format.duration(inv.elapsed))\(inv.truncated ? " · truncated, narrow the window" : "") · relations describe shared attributes and timing, not causes").font(.caption).foregroundStyle(.secondary)
+                    Text("\(inv.entries.count) entries · \(Format.duration(inv.elapsed))\(inv.truncated ? " · truncated, narrow the window" : "") · relations describe shared attributes and timing, not causes").scaledFont(.caption).foregroundStyle(.secondary)
                     Spacer()
                 }.padding(8)
             } else if let error {
@@ -76,9 +78,9 @@ struct InvestigationView: View {
     @ViewBuilder private func entryDetail(_ e: TimelineEntry) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                Text(e.title).font(.headline)
-                Text(e.detail).font(.callout)
-                if !e.relations.isEmpty { Text("Relations: " + e.relations.joined(separator: "; ")).font(.caption).foregroundStyle(.secondary) }
+                Text(e.title).scaledFont(.headline)
+                Text(e.detail).scaledFont(.callout)
+                if !e.relations.isEmpty { Text("Relations: " + e.relations.joined(separator: "; ")).scaledFont(.caption).foregroundStyle(.secondary) }
                 if let f = e.flow {
                     HStack { Button("Pivot to \(f.srcIP)") { model.openInvestigation(.address(f.srcIP)) }; Button("Pivot to \(f.dstIP)") { model.openInvestigation(.address(f.dstIP)) } }
                     FlowDetail(flow: f)
@@ -87,7 +89,7 @@ struct InvestigationView: View {
                     HStack { if let s = ev.srcIP { Button("Pivot to \(s)") { model.openInvestigation(.address(s)) } }; if let d = ev.dstIP { Button("Pivot to \(d)") { model.openInvestigation(.address(d)) } } }
                     LiveInspector(row: LiveRow(id: 0, time: ev.effectiveTime, flow: nil, event: ev))
                 }
-                if let g = e.gap { Text("Gap \(g.kind.label) from \(Format.time(g.start)) to \(g.end.map { Format.time($0) } ?? "now"): \(g.reason)").font(.callout).foregroundStyle(.orange) }
+                if let g = e.gap { Text("Gap \(g.kind.label) from \(Format.time(g.start)) to \(g.end.map { Format.time($0) } ?? "now"): \(g.reason)").scaledFont(.callout).foregroundStyle(.orange) }
                 if e.kind == .alert, let id = e.alertID { Button("Open alert") { model.pendingAlertID = id; model.requestedSection = .security } }
             }.padding(12)
         }

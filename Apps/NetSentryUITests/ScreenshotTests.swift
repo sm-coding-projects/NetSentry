@@ -50,4 +50,61 @@ final class ScreenshotTests: XCTestCase {
         add(wizAttachment)
         try? wiz.pngRepresentation.write(to: dir.appending(path: "setup-wizard.png"))
     }
+    /// The right-hand detail pane stays collapsed until a row is selected, and closes again from its button.
+    func testDetailPaneOpensOnlyForSelection() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--skip-wizard"]
+        app.launch()
+        XCTAssertTrue(app.windows.firstMatch.waitForExistence(timeout: 20), "main window")
+        for (name, table) in [("Live Activity", "Live activity table"), ("Flows", "Flows table"), ("Events", "Events table")] {
+            app.staticTexts[name].firstMatch.click()
+            sleep(3)
+            let close = app.buttons["Close details"].firstMatch
+            XCTAssertFalse(close.exists, "\(name): pane hidden with no selection")
+            let row = app.outlines[table].outlineRows.firstMatch
+            guard row.waitForExistence(timeout: 20) else { print("\(name): no rows to select, skipping"); continue }
+            if name == "Live Activity" { app.buttons["Pause"].firstMatch.click() }   // keep the row under the pointer
+            row.cells.firstMatch.click()
+            XCTAssertTrue(close.waitForExistence(timeout: 5), "\(name): pane opens on selection")
+            save(app, "\(name.lowercased().replacingOccurrences(of: " ", with: "-"))-selected")
+            close.click()
+            sleep(1)
+            XCTAssertFalse(app.buttons["Close details"].firstMatch.exists, "\(name): pane closes")
+            if name == "Live Activity" { app.buttons["Resume"].firstMatch.click() }
+        }
+    }
+
+    /// ⌘+ / ⌘− / ⌘0 change the size of the app's text (the sidebar keeps the system sidebar size).
+    func testTextSizeShortcuts() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--skip-wizard"]
+        app.launch()
+        XCTAssertTrue(app.windows.firstMatch.waitForExistence(timeout: 20), "main window")
+        app.typeKey("0", modifierFlags: .command)
+        app.staticTexts["Flows"].firstMatch.click()
+        let cell = app.outlines["Flows table"].outlineRows.firstMatch.staticTexts.firstMatch
+        guard cell.waitForExistence(timeout: 20) else { throw XCTSkip("no flows to measure") }
+        sleep(1)
+        let base = cell.frame.height
+        save(app, "text-size-100-flows")
+        app.typeKey("+", modifierFlags: .command)
+        app.typeKey("=", modifierFlags: .command)     // ⌘= is the unshifted ⌘+ key on most layouts
+        sleep(1)
+        let bigger = cell.frame.height
+        save(app, "text-size-130-flows")
+        XCTAssertGreaterThan(bigger, base * 1.15, "⌘+ enlarges text (\(base) → \(bigger))")
+        app.typeKey("-", modifierFlags: .command)
+        sleep(1)
+        XCTAssertLessThan(cell.frame.height, bigger, "⌘− shrinks text")
+        app.typeKey("0", modifierFlags: .command)
+        sleep(1)
+        XCTAssertEqual(cell.frame.height, base, accuracy: 1, "⌘0 restores actual size")
+    }
+
+    private func save(_ app: XCUIApplication, _ name: String) {
+        let shot = app.windows.firstMatch.screenshot()
+        let attachment = XCTAttachment(screenshot: shot); attachment.name = name; attachment.lifetime = .keepAlways
+        add(attachment)
+        try? shot.pngRepresentation.write(to: writableScreenshotDir().appending(path: name + ".png"))
+    }
 }

@@ -101,7 +101,7 @@ struct ConnectionFooter: View {
     var body: some View {
         HStack(spacing: 6) {
             Circle().fill(color).frame(width: 8, height: 8)
-            Text(text).font(.caption).foregroundStyle(.secondary)
+            Text(text).scaledFont(.caption).foregroundStyle(.secondary)
             Spacer()
         }
         .padding(.horizontal, 12).padding(.vertical, 8)
@@ -123,7 +123,7 @@ struct ConnectionFooter: View {
 struct DemoBanner: View {
     var body: some View {
         Text("SIMULATED DATA — demo workspace")
-            .font(.caption.bold()).padding(.horizontal, 12).padding(.vertical, 4)
+            .scaledFont(.caption) { $0.bold() }.padding(.horizontal, 12).padding(.vertical, 4)
             .background(.orange, in: Capsule()).foregroundStyle(.black).padding(.top, 6)
             .accessibilityLabel("Simulated data. Demo workspace is active.")
     }

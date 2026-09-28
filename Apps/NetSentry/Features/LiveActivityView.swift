@@ -28,7 +28,7 @@ struct LiveActivityView: View {
                         .keyboardShortcut(.space, modifiers: [])
                     Picker("Show", selection: $kind) { ForEach(Kind.allCases) { Text($0.label).tag($0) } }.pickerStyle(.segmented).frame(width: 260).labelsHidden()
                     TextField("Filter by address, port, client, rule, text…", text: $search).textFieldStyle(.roundedBorder).frame(width: 300)
-                    Text(statusText).font(.caption).foregroundStyle(.secondary)
+                    Text(statusText).scaledFont(.caption).foregroundStyle(.secondary)
                     Button("Clear") { model.clearLive() }
                 }
                 .padding(10)
@@ -47,12 +47,10 @@ struct LiveActivityView: View {
                 }
                 .accessibilityLabel("Live activity table").frame(minWidth: 320).frame(height: geo.size.height)
                 if let sel = selection, let row = model.liveRows.first(where: { $0.id == sel }) {
-                    LiveInspector(row: row).frame(minWidth: 280, idealWidth: 340).frame(height: geo.size.height)
-                } else {
-                    ContentUnavailableView("Select a record", systemImage: "sidebar.right", description: Text("All decoded fields, including unmapped IPFIX elements and raw syslog text, appear here."))
-                        .frame(minWidth: 280, idealWidth: 340).frame(height: geo.size.height)
+                    DetailPane(onClose: { selection = nil }) { LiveInspector(row: row) }.frame(minWidth: 280, idealWidth: 340).frame(height: geo.size.height)
                 }
             }
+            .onExitCommand { selection = nil }
             .frame(width: geo.size.width, height: geo.size.height)
             }
         }
@@ -120,12 +118,12 @@ struct LiveInspector: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
-                Text(row.kindLabel).font(.headline)
+                Text(row.kindLabel).scaledFont(.headline)
                 if let f = row.flow { fields(FlowFields.describe(f)) }
                 if let e = row.event {
                     fields(EventFields.describe(e))
                     GroupBox("Raw message") {
-                        Text(e.raw ?? e.message).font(.system(.caption, design: .monospaced)).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
+                        Text(e.raw ?? e.message).scaledFont(.caption, design: .monospaced).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
             }
@@ -135,7 +133,7 @@ struct LiveInspector: View {
     private func fields(_ items: [(String, String)]) -> some View {
         Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 4) {
             ForEach(items, id: \.0) { k, v in
-                GridRow { Text(k).foregroundStyle(.secondary).font(.caption); Text(v).font(.caption.monospaced()).textSelection(.enabled) }
+                GridRow { Text(k).foregroundStyle(.secondary).scaledFont(.caption); Text(v).scaledFont(.caption) { $0.monospaced() }.textSelection(.enabled) }
             }
         }
     }

@@ -98,18 +98,18 @@ struct TopList: View {
     var body: some View {
         GroupBox(title) {
             if rows.isEmpty {
-                Text("No data in range").font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
+                Text("No data in range").scaledFont(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 let max = Double(rows.map(\.bytes).max() ?? 1)
                 VStack(spacing: 4) {
                     ForEach(rows) { r in
                         HStack(spacing: 8) {
-                            Text(keyLabel(r.key)).font(.callout.monospaced()).lineLimit(1).frame(width: 150, alignment: .leading)
+                            Text(keyLabel(r.key)).scaledFont(.callout) { $0.monospaced() }.lineLimit(1).frame(width: 150, alignment: .leading)
                             GeometryReader { g in
                                 RoundedRectangle(cornerRadius: 3).fill(Color.accentColor.opacity(0.35)).frame(width: g.size.width * CGFloat(Double(r.bytes) / max))
                             }.frame(height: 12)
-                            Text(Format.bytes(r.bytes)).font(.caption.monospacedDigit()).frame(width: 70, alignment: .trailing)
-                            Text("\(r.flows) flows").font(.caption2).foregroundStyle(.secondary).frame(width: 70, alignment: .trailing)
+                            Text(Format.bytes(r.bytes)).scaledFont(.caption) { $0.monospacedDigit() }.frame(width: 70, alignment: .trailing)
+                            Text("\(r.flows) flows").scaledFont(.caption2).foregroundStyle(.secondary).frame(width: 70, alignment: .trailing)
                         }
                         .contentShape(Rectangle())
                         .onTapGesture { onSelect?(r.key) }

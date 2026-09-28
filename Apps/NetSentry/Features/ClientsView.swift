@@ -50,20 +50,19 @@ struct ClientsView: View {
                     TableColumn("Last seen") { c in Text(Format.relative(c.lastSeen)) }.width(100)
                 }
                 .accessibilityLabel("Clients table").frame(maxWidth: .infinity, maxHeight: .infinity)
-                Text("\(clients.count) clients known · identities come from IPFIX MAC/VLAN and DHCP syslog; names, tags and notes are yours.").font(.caption).foregroundStyle(.secondary).padding(6)
-                if let error { Text(error).font(.caption).foregroundStyle(.red).padding(6) }
+                Text("\(clients.count) clients known · identities come from IPFIX MAC/VLAN and DHCP syslog; names, tags and notes are yours.").scaledFont(.caption).foregroundStyle(.secondary).padding(6)
+                if let error { Text(error).scaledFont(.caption).foregroundStyle(.red).padding(6) }
             }
             .frame(minWidth: 320).frame(height: geo.size.height)
-            Group {
-                if let id = selection, let c = clients.first(where: { $0.id == id }) {
+            if let id = selection, let c = clients.first(where: { $0.id == id }) {
+                DetailPane(onClose: { selection = nil }) {
                     ClientDetailView(client: c, others: clients.filter { $0.id != id }, series: series, range: preset.range(), detail: detail, detailPorts: detailPorts, alerts: alerts,
                                      onChange: { updated in if let u = updated, let i = clients.firstIndex(where: { $0.id == u.id }) { clients[i] = u } ; Task { await load() } }, onError: { error = $0 })
-                } else {
-                    ContentUnavailableView("Select a client", systemImage: "desktopcomputer", description: Text("Identity, address history, traffic, alerts and your notes for the selected client."))
                 }
+                .frame(minWidth: 300).frame(height: geo.size.height)
             }
-            .frame(minWidth: 300).frame(height: geo.size.height)
         }
+        .onExitCommand { selection = nil }
         .frame(width: geo.size.width, height: geo.size.height)
         .task { await load() }
         .onChange(of: preset) { _, _ in Task { await load() } }
@@ -120,7 +119,7 @@ struct ClientDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    TextField("Display name", text: $name).textFieldStyle(.roundedBorder).font(.title3)
+                    TextField("Display name", text: $name).textFieldStyle(.roundedBorder).scaledFont(.title3)
                     Button("Rename") { run { try await security.rename(client.id, name) } }.disabled(name == (client.displayName ?? ""))
                     Toggle("Trusted", isOn: Binding(get: { client.trusted }, set: { v in run { try await security.setTrusted(client.id, v) } })).toggleStyle(.switch)
                 }
@@ -131,14 +130,14 @@ struct ClientDetailView: View {
                     GridRow { Text("Addresses").foregroundStyle(.secondary); Text(client.addresses.joined(separator: ", ")).monospaced().textSelection(.enabled) }
                     GridRow { Text("Seen").foregroundStyle(.secondary); Text("\(Format.time(client.firstSeen)) → \(Format.time(client.lastSeen))") }
                     GridRow { Text("Created by").foregroundStyle(.secondary); Text(client.createdBy) }
-                }.font(.callout)
+                }.scaledFont(.callout)
                 HStack {
                     TextField("Tags (comma separated)", text: $tags).textFieldStyle(.roundedBorder)
                     Button("Save tags") { run { try await security.setTags(client.id, tags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }) } }
                 }
                 GroupBox("Notes") {
                     VStack(alignment: .trailing) {
-                        TextEditor(text: $notes).frame(minHeight: 60).font(.callout)
+                        TextEditor(text: $notes).frame(minHeight: 60).scaledFont(.callout)
                         Button("Save notes") { run { try await security.setNotes(client.id, notes) } }.disabled(notes == (client.notes ?? ""))
                     }
                 }
@@ -153,7 +152,7 @@ struct ClientDetailView: View {
                 }
                 GroupBox("Expected for this client") {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Expectations silence first-seen and unusual-destination findings for this client. They are explicit and reviewable in Settings.").font(.caption).foregroundStyle(.secondary)
+                        Text("Expectations silence first-seen and unusual-destination findings for this client. They are explicit and reviewable in Settings.").scaledFont(.caption).foregroundStyle(.secondary)
                         HStack {
                             Picker("", selection: $expectKind) { Text("Destination IP").tag("destination"); Text("Country").tag("country"); Text("ASN").tag("asn"); Text("Port").tag("port"); Text("Resolver").tag("resolver") }.frame(width: 130).labelsHidden()
                             TextField("value", text: $expectValue).textFieldStyle(.roundedBorder)
@@ -165,7 +164,7 @@ struct ClientDetailView: View {
                     GroupBox("Alerts (\(alerts.count))") {
                         VStack(alignment: .leading, spacing: 3) {
                             ForEach(alerts.prefix(10)) { a in
-                                HStack { StatusBadge(text: a.severity.label, kind: a.severity >= .high ? .error : .warning); Text(a.title).lineLimit(1); Spacer(); Text(a.state.rawValue).font(.caption).foregroundStyle(.secondary) }
+                                HStack { StatusBadge(text: a.severity.label, kind: a.severity >= .high ? .error : .warning); Text(a.title).lineLimit(1); Spacer(); Text(a.state.rawValue).scaledFont(.caption).foregroundStyle(.secondary) }
                                     .onTapGesture { model.pendingAlertID = a.id; model.requestedSection = .security }
                             }
                         }.frame(maxWidth: .infinity, alignment: .leading)

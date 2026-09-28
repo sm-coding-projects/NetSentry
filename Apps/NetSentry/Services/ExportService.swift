@@ -52,7 +52,7 @@ struct ExportSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(title).font(.headline)
+            Text(title).scaledFont(.headline)
             if formats.count > 1 { Picker("Format", selection: $format) { ForEach(formats) { Text($0.rawValue).tag($0) } }.pickerStyle(.segmented) }
             GroupBox("Redaction") {
                 VStack(alignment: .leading, spacing: 6) {
@@ -63,10 +63,10 @@ struct ExportSheet: View {
                     Toggle("Remove raw syslog text", isOn: $dropRaw)
                     Toggle("Remove usernames", isOn: $dropUsernames)
                     Toggle("Remove analyst notes", isOn: $dropNotes)
-                    HStack { Button("Nothing") { set(.none) }; Button("For sharing") { set(.sharing) }; Spacer(); Text(policy.summary).font(.caption).foregroundStyle(.secondary) }
+                    HStack { Button("Nothing") { set(.none) }; Button("For sharing") { set(.sharing) }; Spacer(); Text(policy.summary).scaledFont(.caption).foregroundStyle(.secondary) }
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
-            Text("Exports are written with owner-only permissions. Redaction is irreversible in the file; the store is untouched.").font(.caption).foregroundStyle(.secondary)
+            Text("Exports are written with owner-only permissions. Redaction is irreversible in the file; the store is untouched.").scaledFont(.caption).foregroundStyle(.secondary)
             HStack { Spacer(); Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction); Button("Export…") { dismiss(); onExport(format, policy) }.keyboardShortcut(.defaultAction) }
         }
         .padding(16).frame(width: 560)

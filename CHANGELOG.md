@@ -7,6 +7,17 @@ in `project.yml`.
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-09-29
+
+### Added
+- **Adjustable text size.** View › Increase Text Size (⌘+), Decrease Text Size (⌘−) and Actual Size (⌘0)
+  scale the text across the dashboard and Settings from 85 % to 200 %; the choice is remembered. The
+  sidebar keeps the system sidebar size (System Settings › Appearance › Sidebar icon size).
+
+### Changed
+- The detail pane on Live Activity, Flows, Events, Security, Clients and Investigation is now collapsed
+  until you select a row, so tables use the full width. Close it with its × button or Escape.
+
 ## [0.2.2] - 2026-09-29
 
 ### Fixed

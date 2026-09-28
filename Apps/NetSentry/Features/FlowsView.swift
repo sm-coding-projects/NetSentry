@@ -34,11 +34,10 @@ struct FlowsView: View {
             HSplitView {
                 table.frame(minWidth: 320).frame(height: geo.size.height)
                 if let id = selection, let f = rows.first(where: { $0.id == id }) {
-                    ScrollView { FlowDetail(flow: f).padding(12) }.frame(minWidth: 300, idealWidth: 360).frame(height: geo.size.height)
-                } else {
-                    ContentUnavailableView("Select a flow", systemImage: "sidebar.right", description: Text("Every decoded field is shown, including unmapped IPFIX elements.")).frame(minWidth: 300, idealWidth: 360).frame(height: geo.size.height)
+                    DetailPane(onClose: { selection = nil }) { ScrollView { FlowDetail(flow: f).padding(12) } }.frame(minWidth: 300, idealWidth: 360).frame(height: geo.size.height)
                 }
             }
+            .onExitCommand { selection = nil }
             .frame(width: geo.size.width, height: geo.size.height)
             }
             statusBar
@@ -124,8 +123,8 @@ struct FlowsView: View {
     private var statusBar: some View {
         HStack(spacing: 12) {
             if loading { ProgressView().controlSize(.small) }
-            Text(statusText).font(.caption).foregroundStyle(.secondary)
-            if let error { Text(error).font(.caption).foregroundStyle(.red).lineLimit(1) }
+            Text(statusText).scaledFont(.caption).foregroundStyle(.secondary)
+            if let error { Text(error).scaledFont(.caption).foregroundStyle(.red).lineLimit(1) }
             Spacer()
             if page?.nextCursor != nil { Button("Load more") { Task { await load(reset: false) } }.disabled(loading) }
             TextField("Save search as…", text: $savedName).textFieldStyle(.roundedBorder).frame(width: 160).onSubmit { saveSearch() }
@@ -191,10 +190,10 @@ struct FlowDetail: View {
     let flow: FlowRecord
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Flow \(flow.id)").font(.headline)
+            Text("Flow \(flow.id)").scaledFont(.headline)
             Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 4) {
                 ForEach(FlowFields.describe(flow), id: \.0) { k, v in
-                    GridRow { Text(k).foregroundStyle(.secondary).font(.caption); Text(v).font(.caption.monospaced()).textSelection(.enabled) }
+                    GridRow { Text(k).foregroundStyle(.secondary).scaledFont(.caption); Text(v).scaledFont(.caption) { $0.monospaced() }.textSelection(.enabled) }
                 }
             }
         }

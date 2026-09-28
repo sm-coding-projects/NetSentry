@@ -19,7 +19,7 @@ struct FormattedText: View {
         switch block {
         case .heading(let level, let text):
             Text(inline(text))
-                .font(level <= 1 ? .title3.bold() : level == 2 ? .headline : .subheadline.bold())
+                .scaledFont(level <= 1 ? .title3 : level == 2 ? .headline : .subheadline) { level == 2 ? $0 : $0.bold() }
                 .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, 2)
@@ -40,7 +40,7 @@ struct FormattedText: View {
             }
         case .code(let code):
             Text(code)
-                .font(.system(.callout, design: .monospaced))
+                .scaledFont(.callout, design: .monospaced)
                 .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)

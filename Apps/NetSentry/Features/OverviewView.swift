@@ -43,27 +43,27 @@ struct OverviewView: View {
     @ViewBuilder
     private var analyticsSection: some View {
         HStack {
-            Text("Historical").font(.headline)
+            Text("Historical").scaledFont(.headline)
             Picker("Range", selection: $preset) { ForEach(RangePreset.allCases) { Text($0.rawValue).tag($0) } }.frame(width: 130).labelsHidden()
             if loader.loading { ProgressView().controlSize(.small) }
-            if let d = loader.data { Text("\(Format.duration(d.elapsed))").font(.caption).foregroundStyle(.tertiary) }
+            if let d = loader.data { Text("\(Format.duration(d.elapsed))").scaledFont(.caption).foregroundStyle(.tertiary) }
             Spacer()
             Button("Reload") { reload() }
         }
         if let err = loader.error {
-            Text(err).font(.caption).foregroundStyle(.red)
+            Text(err).scaledFont(.caption).foregroundStyle(.red)
         }
         if let d = loader.data {
             GroupBox("Traffic") {
                 VStack(alignment: .leading, spacing: 6) {
                     if let t = d.totals {
                         Text("\(Format.bytes(t.bytes)) in \(Format.count(UInt64(t.flows))) flows · outbound \(Format.bytes(t.outboundBytes)) · inbound \(Format.bytes(t.inboundBytes))")
-                            .font(.callout).foregroundStyle(.secondary)
+                            .scaledFont(.callout).foregroundStyle(.secondary)
                     }
                     TrafficChart(series: d.series, gaps: d.gaps, range: d.range)
                     if !d.gaps.isEmpty {
                         let kinds = d.gaps.reduce(into: [String]()) { acc, g in if !acc.contains(g.kind.label) { acc.append(g.kind.label) } }
-                        Text("Shaded areas are collection gaps (\(d.gaps.count)): \(kinds.joined(separator: ", ")). They are never shown as zero traffic.").font(.caption).foregroundStyle(.orange)
+                        Text("Shaded areas are collection gaps (\(d.gaps.count)): \(kinds.joined(separator: ", ")). They are never shown as zero traffic.").scaledFont(.caption).foregroundStyle(.orange)
                     }
                 }
             }
@@ -77,15 +77,15 @@ struct OverviewView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         let allowed = d.eventsByAction.first { $0.key == "1" }?.count ?? 0
                         let denied = d.eventsByAction.filter { ["2", "3", "4"].contains($0.key) }.reduce(0) { $0 + $1.count }
-                        Text("Allowed \(allowed) · Denied/blocked \(denied)").font(.callout)
+                        Text("Allowed \(allowed) · Denied/blocked \(denied)").scaledFont(.callout)
                         ForEach(d.eventsByType) { r in
-                            HStack { Text(EventType(rawValue: UInt8(r.key) ?? 0)?.label ?? r.key); Spacer(); Text("\(r.count)").monospacedDigit() }.font(.callout)
+                            HStack { Text(EventType(rawValue: UInt8(r.key) ?? 0)?.label ?? r.key); Spacer(); Text("\(r.count)").monospacedDigit() }.scaledFont(.callout)
                         }
-                        if d.eventsByType.isEmpty { Text("No syslog events in range").font(.caption).foregroundStyle(.secondary) }
+                        if d.eventsByType.isEmpty { Text("No syslog events in range").scaledFont(.caption).foregroundStyle(.secondary) }
                         if !d.idsSignatures.isEmpty {
                             Divider()
-                            Text("IDS/IPS").font(.caption.bold())
-                            ForEach(d.idsSignatures.prefix(5)) { r in HStack { Text(r.key).lineLimit(1); Spacer(); Text("\(r.count)") }.font(.caption) }
+                            Text("IDS/IPS").scaledFont(.caption) { $0.bold() }
+                            ForEach(d.idsSignatures.prefix(5)) { r in HStack { Text(r.key).lineLimit(1); Spacer(); Text("\(r.count)") }.scaledFont(.caption) }
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -93,7 +93,7 @@ struct OverviewView: View {
             }
             GroupBox("Coming in Phase 5") {
                 Text("New external destinations, countries and ASNs, client baselines and active alerts appear with entity resolution and detections. Nothing here is a placeholder number.")
-                    .font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
+                    .scaledFont(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
             }
         } else if !loader.loading {
             ContentUnavailableView("No historical data yet", systemImage: "chart.xyaxis.line", description: Text("Aggregates appear once the collector has written its first segment (about a minute after data starts arriving)."))
@@ -106,7 +106,7 @@ struct OverviewView: View {
             let failed = h.listeners.contains { if case .failed = $0.state { true } else { false } }
             StatusBadge(text: failed ? "Listener failure" : (listening > 0 ? "Collecting" : "Idle"), kind: failed ? .error : (listening > 0 ? .ok : .neutral))
             Text("\(listening) of \(h.listeners.count) listeners active · collector \(h.collectorVersion) (\(h.collectorBuild)) · up since \(Format.time(h.startedAt))")
-                .font(.callout).foregroundStyle(.secondary)
+                .scaledFont(.callout).foregroundStyle(.secondary)
             Spacer()
         }
     }
@@ -122,11 +122,11 @@ struct WarningsList: View {
                         Image(systemName: w.level == .critical ? "xmark.octagon.fill" : (w.level == .warning ? "exclamationmark.triangle.fill" : "info.circle.fill")).accessibilityHidden(true)
                             .foregroundStyle(w.level == .critical ? .red : (w.level == .warning ? .orange : .blue))
                         VStack(alignment: .leading) {
-                            Text(w.title).font(.callout.weight(.medium))
-                            Text(w.detail).font(.caption).foregroundStyle(.secondary)
+                            Text(w.title).scaledFont(.callout) { $0.weight(.medium) }
+                            Text(w.detail).scaledFont(.caption).foregroundStyle(.secondary)
                         }
                         Spacer()
-                        Text(Format.relative(w.since)).font(.caption2).foregroundStyle(.tertiary)
+                        Text(Format.relative(w.since)).scaledFont(.caption2).foregroundStyle(.tertiary)
                     }
                     .accessibilityElement(children: .combine)
                 }
