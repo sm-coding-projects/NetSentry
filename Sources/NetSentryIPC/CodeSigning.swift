@@ -3,11 +3,12 @@ import NetSentryCore
 
 /// Code-signing requirement strings used on both ends of the XPC connection.
 /// The requirement language has no wildcard for `identifier`, so each side pins the other's exact
-/// bundle identifier; release builds additionally pin the Team ID.
+/// bundle identifier; release builds additionally pin the Team ID. Ad-hoc release builds carry no real
+/// Team ID (and no Apple certificate chain), so they fall back to the identifier-only requirement.
 public enum XPCRequirement {
-    public static func peer(identifier: String, pinToTeam: Bool) -> String {
-        if pinToTeam {
-            return "anchor apple generic and identifier \"\(identifier)\" and certificate leaf[subject.OU] = \"\(Branding.teamID)\""
+    public static func peer(identifier: String, pinToTeam: Bool, teamID: String = Branding.teamID) -> String {
+        if pinToTeam, Branding.isRealTeamID(teamID) {
+            return "anchor apple generic and identifier \"\(identifier)\" and certificate leaf[subject.OU] = \"\(teamID)\""
         }
         return "identifier \"\(identifier)\""
     }

@@ -48,6 +48,7 @@ final class AppModel {
         client.onStateChange = { [weak self] s in Task { @MainActor in self?.connectionState = s } }
         manager.refreshStatus()
         agentStatus = manager.statusDescription
+        Task { [manager] in await manager.reregisterIfCollectorChanged(); manager.refreshStatus() }
         startPolling()
         notificationTask = Task { [weak self] in
             guard let self else { return }

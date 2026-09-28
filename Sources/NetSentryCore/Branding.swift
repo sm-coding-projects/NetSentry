@@ -19,6 +19,8 @@ public enum Branding {
     public static let appGroupID = infoString("NetSentryAppGroup") ?? "group.\(bundlePrefix)"
     /// Apple Team ID used in XPC code-signing requirements (`NETSENTRY_TEAM_ID`).
     public static let teamID = infoString("NetSentryTeamID") ?? "TEAMID"
+    /// False for the `TEAMID` placeholder used by unsigned and ad-hoc builds (`build-release.sh --adhoc`).
+    public static func isRealTeamID(_ id: String) -> Bool { !id.isEmpty && id != "TEAMID" }
 
     private static func infoString(_ key: String) -> String? {
         guard let v = Bundle.main.infoDictionary?[key] as? String, !v.isEmpty, !v.hasPrefix("$(") else { return nil }

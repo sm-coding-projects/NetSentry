@@ -7,6 +7,16 @@ in `project.yml`.
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-09-29
+
+### Fixed
+- Ad-hoc signed release builds (`build-release.sh --adhoc`) showed "Collector not running": the XPC
+  requirement pinned an Apple-anchored Team ID that ad-hoc signatures cannot satisfy. Builds without a
+  real Team ID now fall back to the identifier-only requirement.
+- Updating an ad-hoc build left the collector unable to start (launchd exit 78, `EX_CONFIG`) because the
+  LaunchAgent registration stays pinned to the previous collector's cdhash. The app now re-registers the
+  agent on launch whenever the bundled collector changes.
+
 ## [0.1.0] - 2026-09-19
 
 First public release. Phases 0–6 delivered.
