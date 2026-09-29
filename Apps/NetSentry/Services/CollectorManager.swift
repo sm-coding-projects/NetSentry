@@ -40,7 +40,6 @@ final class CollectorManager {
     func register() throws {
         try service.register()
         cachedStatus = service.status
-        if let fp = Self.collectorFingerprint() { UserDefaults.standard.set(fp, forKey: Self.fingerprintKey) }
         log.notice("LaunchAgent registered; status \(String(describing: self.service.status), privacy: .public)")
     }
 
@@ -57,22 +56,41 @@ final class CollectorManager {
 
     /// launchd pins a registration to the collector's exact cdhash when the build is ad-hoc signed, so after
     /// an app update the stale registration refuses to spawn the new binary (exit 78, EX_CONFIG).
-    /// Re-registers once whenever the bundled collector differs from the one last registered.
-    func reregisterIfCollectorChanged() async {
-        guard let current = Self.collectorFingerprint(),
-              UserDefaults.standard.string(forKey: Self.fingerprintKey) != current else { return }
+    ///
+    /// Called on launch (`running == nil`) and after every status poll with the collector's reported
+    /// version/build (nil when unreachable). While the bundled collector has not been confirmed running, the
+    /// agent is re-registered, at most every 15 s and 5 times per launch: the first attempt can race with
+    /// macOS processing the updated app and leave the old constraint in place.
+    func ensureBundledCollectorRunning(running: (version: String, build: String)?) async {
+        guard let bundled = Self.collectorFingerprint() else { return }
+        if let running, running.version == Branding.version, running.build == Branding.build {
+            UserDefaults.standard.set(bundled, forKey: Self.fingerprintKey)   // confirmed: this build is running
+            return
+        }
+        guard UserDefaults.standard.string(forKey: Self.fingerprintKey) != bundled || running != nil else { return }
+        guard !reregistering, reregisterAttempts < 5, reregisterAttemptedAt.map({ Date.now.timeIntervalSince($0) > 15 }) ?? true else { return }
+        reregistering = true
+        defer { reregistering = false }
         let plist = Branding.launchAgentPlistName
-        let status = await Task.detached(priority: .utility) { SMAppService.agent(plistName: plist).status }.value
-        guard status == .enabled else { return }   // not registered yet: the wizard/settings toggle registers it
-        log.notice("Bundled collector changed; re-registering LaunchAgent")
+        guard await Task.detached(priority: .utility, operation: { SMAppService.agent(plistName: plist).status }).value == .enabled else { return }
+        reregisterAttempts += 1
+        reregisterAttemptedAt = .now
+        log.notice("Bundled collector not running yet (attempt \(self.reregisterAttempts)); re-registering LaunchAgent")
         do {
             try? await service.unregister()
+            for _ in 0..<20 {   // let smd finish removing the job before submitting it again
+                if await Task.detached(operation: { SMAppService.agent(plistName: plist).status }).value == .notRegistered { break }
+                try? await Task.sleep(for: .milliseconds(250))
+            }
             try register()
         } catch {
             log.error("Re-registering LaunchAgent failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 
+    private var reregistering = false
+    private var reregisterAttempts = 0
+    private var reregisterAttemptedAt: Date?
     private static let fingerprintKey = "registeredCollectorCDHash"
 
     /// Hex cdhash of the collector bundled inside this app.

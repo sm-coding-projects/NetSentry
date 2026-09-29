@@ -7,6 +7,14 @@ in `project.yml`.
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-09-29
+
+### Fixed
+- The first launch after updating an ad-hoc build could leave the collector stuck (launchd exit 78,
+  `EX_CONFIG`): the one-shot re-registration raced with macOS processing the updated app. The app now
+  re-registers every 15 s (up to 5 times) until the collector reports the same version and build as the
+  app, and only then records it as current.
+
 ## [0.2.3] - 2026-09-29
 
 ### Added

@@ -48,7 +48,7 @@ final class AppModel {
         client.onStateChange = { [weak self] s in Task { @MainActor in self?.connectionState = s } }
         manager.refreshStatus()
         agentStatus = manager.statusDescription
-        Task { [manager] in await manager.reregisterIfCollectorChanged(); manager.refreshStatus() }
+        Task { [manager] in await manager.ensureBundledCollectorRunning(running: nil); manager.refreshStatus() }
         startPolling()
         notificationTask = Task { [weak self] in
             guard let self else { return }
@@ -90,6 +90,7 @@ final class AppModel {
             if connectionState != .disconnected || health != nil { log.info("refresh failed: \(error.localizedDescription, privacy: .public)") }
             health = nil
         }
+        await manager.ensureBundledCollectorRunning(running: health.map { ($0.collectorVersion, $0.collectorBuild) })
     }
 
     /// Applies configuration through the collector when it is reachable, otherwise saves the bootstrap file.
